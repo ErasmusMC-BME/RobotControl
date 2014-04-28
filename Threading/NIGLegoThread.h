@@ -6,6 +6,7 @@
 //#include "NXT++.h"
 #ifndef LegoThread_H
 #define LegoThread_H
+#if 0
 #include <iostream>
 #include <fstream>
 #include <iostream>
@@ -26,7 +27,8 @@
 #include <list>
 #include <vector>
 #include <process.h>    /* _beginthread, _endthread */
-#define MAX_THREADS 1
+#endif
+
 #include "Timer.h"
 #include "legocontrol.h"
 #include "NIGMultiThread.h"

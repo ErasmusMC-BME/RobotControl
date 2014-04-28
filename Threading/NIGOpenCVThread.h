@@ -181,5 +181,5 @@ private:
 };
 
 
-#include "NIGOpenCVThread.txx""
+#include "NIGOpenCVThread.txx"
 #endif
