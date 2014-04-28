@@ -32,18 +32,39 @@ FIND_PACKAGE(OpenCV REQUIRED )
  
 
 LINK_DIRECTORIES ("C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v6.0/lib/Win32") 
+
+
+
 LINK_DIRECTORIES ($ENV{BME_BASE_DIR}/Ascension/Lib) 
 LINK_DIRECTORIES ($ENV{BME_BASE_DIR}/NXT++.07/bin32/${OutDir}) 
 LINK_DIRECTORIES ($ENV{BME_BASE_DIR}/NXT++.07/Lib) 
 
 INCLUDE_DIRECTORIES($ENV{BME_BASE_DIR}/Ascension/Include)
 INCLUDE_DIRECTORIES($ENV{BME_BASE_DIR}/NXT++.07/include)
-INCLUDE_DIRECTORIES($ENV{NIG_COMMON_DIR}/TiePie)
+INCLUDE_DIRECTORIES($ENV{BME_BASE_DIR}/TiePie/include)
+
 INCLUDE_DIRECTORIES($ENV{NIG_COMMON_DIR}/Timer)
 INCLUDE_DIRECTORIES(${RobotApp_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${RobotApp_SOURCE_DIR}/Threading)
-INCLUDE_DIRECTORIES($ENV{BME_SOURCE_DIR}/itkVTK)
+INCLUDE_DIRECTORIES(${ITK_DIR}/../Modules/Bridge/VtkGlue/include)
 INCLUDE_DIRECTORIES($ENV{NIG_COMMON_DIR})
+
+
+SET (EXT_hdr 
+	$ENV{BME_BASE_DIR}/TiePie/include/TiePie.h
+	$ENV{BME_BASE_DIR}/TiePie/include/TiePieDLL.h
+	$ENV{BME_BASE_DIR}/Ascension/Include/ATC3DG.h
+	$ENV{BME_BASE_DIR}/NXT++.07/include/NXT++.h	 
+	)
+SET (EXT_files  
+	$ENV{BME_BASE_DIR}/TiePie/Source/tiepiedll.cpp
+	$ENV{BME_BASE_DIR}/NXT++.07/src/NXT++.cpp
+	)
+   
+	  
+SET_SOURCE_FILES_PROPERTIES( ${HW6_hdr} PROPERTIES HEADER_FILE_ONLY TRUE )
+	SOURCE_GROUP( "External headers" FILES ${EXT_hdr} )
+	SOURCE_GROUP( "External sources" FILES ${EXT_files} )
 
 
 SET( RobotAppFiles 
@@ -64,15 +85,10 @@ SET( RobotAppFiles
 	MainPage.h
 	$ENV{NIG_COMMON_DIR}/Timer/Timer.cpp
 	$ENV{NIG_COMMON_DIR}/Timer/Timer.h
-	$ENV{NIG_COMMON_DIR}/TiePie/TiePie.h
-	$ENV{NIG_COMMON_DIR}/TiePie/TiePieDLL.h
-	$ENV{NIG_COMMON_DIR}/TiePie/tiepiedll.cpp
-	$ENV{BME_BASE_DIR}/Ascension/Include/ATC3DG.h
-	$ENV{BME_BASE_DIR}/NXT++.07/include/NXT++.h	 
-	$ENV{BME_BASE_DIR}/NXT++.07/src/NXT++.cpp
+	${EXT_hdr}
+	${EXT_files}
  	)
 	
-
 
 # VXL stuff
 INCLUDE_DIRECTORIES( $ENV{BME_BASE_DIR}/vxl-1.14.0/Bin32/vcl )

@@ -162,6 +162,14 @@ int main()
 	TiepieThreadObj->_ResumeThread();
 	TiepieThreadObj->_WaitForSingleObject();
 	TiepieThreadObj->GetOutput();
+	
+	
+	
+	LegoThreadObj->_BeginThread();
+	LegoThreadObj->_ResumeThread();
+	LegoThreadObj->_WaitForSingleObject();
+	LegoOut = LegoThreadObj->GetOutput();
+
 
 
 
@@ -198,7 +206,6 @@ int main()
 		}
 	} while (1);
 	OpenCVThreadObj->_WaitForSingleObject();
-#endif
 
 
 	getchar();	
@@ -222,12 +229,6 @@ int main()
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 
 
-	LegoThreadObj->_BeginThread();
-	LegoThreadObj->_ResumeThread();
-	LegoThreadObj->_WaitForSingleObject();
-	LegoOut = LegoThreadObj->GetOutput();
-
-#if 0
 
 	getchar();	
 	
