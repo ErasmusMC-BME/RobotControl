@@ -85,7 +85,7 @@ int main()
 	int recordLength_TrakStar = ceil( df_TrakStar * acquisitionTime );
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
-	TrakStarThreadObj->Update();
+	TrakStarThreadObj->Update(); // nothing yet (not sure if we use)
 	TrakStarThreadObj->_BeginThread();
 	TrakStarThreadObj->_ResumeThread();
 	// wait for the measurement threads to finish

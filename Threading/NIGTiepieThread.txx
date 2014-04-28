@@ -31,8 +31,9 @@ the format string gives a format code for each parameter  <BR>
 
 template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::Initialize(const char *fmt, ...)
 {
-	Initialize();  
+	Initialize(); // old initialization of TiePie
 
+  // test var 
 	va_list args;
 	va_start(args, fmt);
 
@@ -49,11 +50,16 @@ template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::Initialize(const 
 		}
 		++fmt;
 	}
-	va_end(args);
+	// end test
+
+
+  // actual parameter passing
+  va_end(args);
 	dword recLen;
 	double sensCh1;
 	double fs;
 
+  
 	va_start(args, fmt);
 	recLen = va_arg(args, dword);
 	sensCh1= va_arg(args, double);
