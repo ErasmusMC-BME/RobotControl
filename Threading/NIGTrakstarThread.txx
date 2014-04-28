@@ -114,6 +114,7 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
 {
   if ( _bTrakstarReady )
   {
+	  	Timer *m_timer= (Timer *) m_SyncObject;
 	  // make sure transmitter is switched on
 	    SET_SYSTEM_PARAMETER( SELECT_TRANSMITTER,	_transmitterID );
 	

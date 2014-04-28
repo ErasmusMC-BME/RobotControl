@@ -86,6 +86,7 @@ int main()
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
 	TrakStarThreadObj->Update();
+	TrakStarThreadObj->_BeginThread();
 	TrakStarThreadObj->_ResumeThread();
 	// wait for the measurement threads to finish
 	TrakStarThreadObj->_WaitForSingleObject();
