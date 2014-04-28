@@ -5,9 +5,9 @@ int Lego::init()
 {
 	bool bNXTFound = false;
 	
-	//if(NXT::Open(&comm)) //initialize the NXT and continue if it succeds USB 
+	if(NXT::Open(&comm)) //initialize the NXT and continue if it succeds USB 
 
-	if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
+	//if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 	{
 		bNXTFound=true;
 		std::cout << "Connection made" << std::endl;

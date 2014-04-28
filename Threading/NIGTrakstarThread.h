@@ -50,6 +50,8 @@ class SharedObjects;
  */
 class TrakstarObjects
 {
+private:
+	vnl_matrix<double> _measures;
 
 public:
 
@@ -66,6 +68,16 @@ public:
 	 * Remarks
 	 *
 	 */
+	vnl_matrix<double>  GetMeasures()
+	{
+		return _measures;
+	}
+	void SetMeasures(vnl_matrix<double> measures )
+	{
+		_measures=measures;
+	}
+
+
 
 	TrakstarObjects()
 	{
@@ -134,6 +146,7 @@ public:
       // or it can terminate itself with a call to _endthread().
       return 1;          // the thread exit code
    }
+#if 0
   static unsigned __stdcall ThreadStaticRecordPositionDataEntryPoint(void * pThis)
   {
     TrakstarThread * pthX = (TrakstarThread*)pThis;   // the tricky cast
@@ -154,7 +167,7 @@ public:
       // or it can terminate itself with a call to _endthread().
       return 1;          // the thread exit code
    }
-
+#endif
   void RecordPositionData();
 private:
 };

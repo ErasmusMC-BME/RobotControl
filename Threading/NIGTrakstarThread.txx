@@ -44,6 +44,7 @@ template  <class Tin,class Tout>  void  TrakstarThread<Tin,Tout>::Initialize(con
 		++fmt;
 	}
 	va_end(args);
+	Initialize(  );
 };
 
 
@@ -64,6 +65,7 @@ template  <class Tin,class Tout>  void TrakstarThread<Tin,Tout>::Update( void )
 
 template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::ExecuteCommand()
 {  
+	RecordPositionData();
 	_endthread();
 	return ;
 }
@@ -160,6 +162,7 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
 	    
 	    }
   }
+  m_OutputData->TrakstarObjects::SetMeasures(_measures);
 
   // clean up 
   printf("Switch off transmitter\n");
