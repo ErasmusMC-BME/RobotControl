@@ -18,7 +18,7 @@ const int MAILBOX_C = 3;	//! Position Mailbox for Motor port C on the NXT
 const int MAILBOX_INIT   = 4; //! Intialization Mailbox for Motors
 const int MAILBOX_START  = 5; //! Start Mailbox for Motors
 const int MAILBOX_RESET  = 6; //! Start Mailbox for Motors
-
+const int MAILBOX_RECIEVE = 8;
 
 
 // Image plane movement functions

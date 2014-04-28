@@ -137,6 +137,8 @@ int main()
 	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motor
 
+	LegoThreadObj->TextMessageRecieve(MAILBOX_RECIEVE,true);
+
 	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
