@@ -74,7 +74,7 @@ public:
 
 
 
-template  <class Tin,class Tout>  class LegoThread:public thread<Tin,Tout> , public Lego
+template  <class Tin,class Tout>  class LegoThread:public thread<Tin,Tout> 
 {
 
 private:
@@ -83,6 +83,7 @@ private:
 	bool _bLegoFound;
 	bool _bLegoReady;
 	static LegoThread *m_Legothread;
+	Comm::NXTComm comm;
 public:
 	LegoThread();
 	~LegoThread(void);
@@ -106,17 +107,12 @@ public:
 	
 	virtual void Calibrate();
 
-
-	static unsigned __stdcall ThreadStaticLegoEntryPoint(void * pThis)
-	{
-		LegoThread * pthX = (LegoThread*)pThis;   // the tricky cast
-
-		pthX->ThreadEntryPoint();    // now call the true entry-point-function
-
-		// A thread terminates automatically if it completes execution,
-		// or it can terminate itself with a call to _endthread().
-		return 1;          // the thread exit code
-	}
+	void TextMessageSend(std::string message, int inbox);
+	std::string TextMessageRecieve(int mailbox, bool remove);
+	void WordSend(int Value, int inbox);
+	int WordRecieve(int mailbox, bool remove);
+	void BoolSend(bool Value, int inbox);
+	bool BoolRecieve(int mailbox, bool remove);
 
 private:
 };
