@@ -47,7 +47,7 @@ template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( v
 	// This is the desired entry-point-function but to get
 	// here we have to use a 2 step procedure involving
 	// the ThreadStaticEntryPoint() function.
-  ExecuteCommand(); 
+ 
 	_endthread();
 }
 
@@ -140,18 +140,7 @@ template  <class Tin,class Tout> std::string LegoThread<Tin,Tout>::TextMessageRe
 //WORD wordVal = MAKEWORD(loByte, hiByte);
 	return out;
 }
-<<<<<<< HEAD
-template  <class Tin,class Tout> void LegoThread<Tin,Tout>::ExecuteCommand()
-{  
-	float z = 1;
-	float a = 0;
-	float b=  0;
-	//move_relative(z, a, b);
-	//Time = m_timer->getElapsedTimeInSec();
-	//std::cout << "End Time Lego: " << Time << std::endl;
-	//std::cout << "LegoCommand: " << _LegoCommand << std::endl;
-	_endthread();
-=======
+
 template  <class Tin,class Tout> int LegoThread<Tin,Tout>::WordRecieve(int mailbox, bool remove)
 {
 	return 0;
