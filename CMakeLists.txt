@@ -67,9 +67,8 @@ SET_SOURCE_FILES_PROPERTIES( ${HW6_hdr} PROPERTIES HEADER_FILE_ONLY TRUE )
 	SOURCE_GROUP( "External sources" FILES ${EXT_files} )
 
 
-SET( RobotAppFiles 
+SET( RobotBaseFiles 
 	$ENV{NIG_COMMON_DIR}/utility.h
-	RobotApp.cpp
 	$ENV{NIG_COMMON_DIR}/Thread.h
 	Threading/NIGMultiThread.h
 	Threading/legocontrol.cpp
@@ -88,7 +87,18 @@ SET( RobotAppFiles
 	${EXT_hdr}
 	${EXT_files}
  	)
-	
+
+		
+
+SET( RobotAppFiles 
+	RobotApp.cpp
+	${RobotBaseFiles}
+ 	)
+
+SET( RobotTestAppFiles 
+	RobotTestApp.cpp
+	${RobotBaseFiles}
+ 	)
 
 # VXL stuff
 INCLUDE_DIRECTORIES( $ENV{BME_BASE_DIR}/vxl-1.14.0/Bin32/vcl )
@@ -104,4 +114,8 @@ INCLUDE_DIRECTORIES( $ENV{ALEX_COMMON_DIR} )
 ADD_EXECUTABLE( RobotApp ${RobotAppFiles})
 
 TARGET_LINK_LIBRARIES ( RobotApp ATC3DG NXT++ fantom vnl vcl ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${OpenCV_LIBS} ${OpenCL_LIBS} )
+
+ADD_EXECUTABLE( RobotTestApp ${RobotTestAppFiles})
+
+TARGET_LINK_LIBRARIES ( RobotTestApp ATC3DG NXT++ fantom vnl vcl ${ITK_LIBRARIES} ${VTK_LIBRARIES} ${OpenCV_LIBS} ${OpenCL_LIBS} )
 
