@@ -56,6 +56,8 @@ int main()
 	// create sharedobjs object
 	SharedObjects * sharedobjs = new SharedObjects(); 
 
+	vnl_vector<double> * m_CurrentMeasures=sharedobjs->GetCurrentMeasures();
+
 	// create sync  object	and start timer;
 	SyncTimerObject * syncTimer = new SyncTimerObject();
 	syncTimer->start();	
@@ -75,34 +77,91 @@ int main()
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
 	TrakStarThreadObj->CreateRecorderThread();
+
+	// create Tiepie object
+	TiepieObjects * TiepieOut;
+	TiepieThread<SharedObjects,TiepieObjects> *TiepieThreadObj;
+	TiepieThreadObj=TiepieThread<SharedObjects,TiepieObjects>::New(); //Create thread
+	TiepieThreadObj->SetInput(sharedobjs);
+
+	// initialize Tiepie object	
+	double df_Tiepie = 1000.0; // (Hz)
+	double sensCh1_Tiepie = 1.0;
+	dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
+	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
+	TiepieThreadObj->SetSync(syncTimer);
+	TiepieThreadObj->CreateRecorderThread();
+
+		// create OpenCV object
+	OpenCVObjects * VideoOut;
+	OpenCVThread<SharedObjects,OpenCVObjects> *OpenCVThreadObj;
+	OpenCVThreadObj=OpenCVThread<SharedObjects,OpenCVObjects>::New(); //Create thread
+	OpenCVThreadObj->SetInput(sharedobjs);
+	
+	// initialize OpenCV object
+	OpenCVThreadObj->Initialize();
+	OpenCVThreadObj->SetSync(syncTimer);
+	OpenCVThreadObj->CreateRecorderThread();
+
+	// create Lego object
+	bool bValue=true;
+	LegoObjects * LegoOut;
+	LegoThread<SharedObjects,LegoObjects> *LegoThreadObj;
+	LegoThreadObj=LegoThread<SharedObjects,LegoObjects>::New(); //Create thread
+	LegoThreadObj->SetInput(sharedobjs);
+	
+	// initialize Lego object
+	LegoThreadObj->Initialize();
+	LegoThreadObj->SetSync(syncTimer);
+	LegoThreadObj->CreateRecorderThread();
+		
 	TrakStarThreadObj->StartRecorderThread();
+	OpenCVThreadObj->StartRecorderThread();
+	TiepieThreadObj->StartRecorderThread();
+
+	if(LegoThreadObj->isLegoFound())
+	{
+		LegoThreadObj->StartRecorderThread();
+	}
+
+
+
+	do 
+	{
+		if( OpenCVThreadObj->isOpenCVFound())
+		{
+			VideoOut=OpenCVThreadObj->GetOutput();
+			_timeVideo=VideoOut->GetTimeVideo();
+			_VideoImage=VideoOut->GetVideoImage();
+
+			//std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
+			WriterType::Pointer writer = WriterType::New();
+			writer->SetFileName("d:\\cam23.tif");
+			ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
+			writer->SetInput(clonedImage);
+			writer->Update();
+			utility<double> helper;
+			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+
+
+		}
+	} while (1);
+
 	// wait for the measurement threads to finish
+
+
+
 	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
+	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 	// retrieve and save data
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
 
-
-  utility<double> helper;
-	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
-	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
-  helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
-//
+	LegoThreadObj->WaitUntilRecorderThreadIsDone();
+	LegoOut = LegoThreadObj->GetOutput();
 
 
-
-	// create Lego object
-	bool bValue=true;
-	LegoThread<SharedObjects,LegoObjects> * self= new  LegoThread<SharedObjects,LegoObjects>();
-	LegoObjects * LegoOut;
-	LegoThread<SharedObjects,LegoObjects> *LegoThreadObj;
-	LegoThreadObj=LegoThread<SharedObjects,LegoObjects>::New(); //Create thread
-
-	
-	LegoThreadObj->SetInput(sharedobjs);
-	LegoThreadObj->Initialize();
-
-	LegoThreadObj->SetSync(syncTimer);
 	if(LegoThreadObj->isLegoFound())
 	{
 
@@ -138,63 +197,14 @@ int main()
 
 	}
 
-	// create Tiepie object
-	TiepieObjects * TiepieOut;
-	TiepieThread<SharedObjects,TiepieObjects> *TiepieThreadObj;
-	TiepieThreadObj=TiepieThread<SharedObjects,TiepieObjects>::New(); //Create thread
-	TiepieThreadObj->SetInput(sharedobjs);
-
-	// initialize Tiepie object	
-	double df_Tiepie = 1000.0; // (Hz)
-	double sensCh1_Tiepie = 1.0;
-	dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
-	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
-	TiepieThreadObj->SetSync(syncTimer);
-	TiepieThreadObj->TestCalibrationDate();
-	
-	TiepieThreadObj->CreateRecorderThread();
-	TiepieThreadObj->StartRecorderThread();
-	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
-	TiepieThreadObj->GetOutput();
-
-	
-	LegoThreadObj->CreateRecorderThread();
-	LegoThreadObj->StartRecorderThread();
-	LegoThreadObj->WaitUntilRecorderThreadIsDone();
-	LegoOut = LegoThreadObj->GetOutput();
 
 
 
-	OpenCVObjects * VideoOut;
-	OpenCVThread<SharedObjects,OpenCVObjects> *OpenCVThreadObj;
-	OpenCVThreadObj=OpenCVThread<SharedObjects,OpenCVObjects>::New(); //Create thread
-	OpenCVThreadObj->SetInput(sharedobjs);
-	OpenCVThreadObj->Initialize();
-	OpenCVThreadObj->SetSync(syncTimer);
-	OpenCVThreadObj->CreateRecorderThread();
-	OpenCVThreadObj->StartRecorderThread();
-
-	do 
-	{
-		if( OpenCVThreadObj->isOpenCVFound())
-		{
-			VideoOut=OpenCVThreadObj->GetOutput();
-			_timeVideo=VideoOut->GetTimeVideo();
-			_VideoImage=VideoOut->GetVideoImage();
-
-			//std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
-			WriterType::Pointer writer = WriterType::New();
-			writer->SetFileName("d:\\cam23.tif");
-			ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
-			writer->SetInput(clonedImage);
-			writer->Update();
-			utility<double> helper;
-			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
-
-
-		}
-	} while (1);
-	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
+	utility<double> helper;
+	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
+	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
+	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
+	//
 
 	getchar();	
 

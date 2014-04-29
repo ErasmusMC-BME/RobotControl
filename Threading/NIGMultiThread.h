@@ -25,31 +25,46 @@ typedef itk::ImageDuplicator< ImageType >	 DuplicatorType;
 class SharedObjects
 {
 private:
-	vnl_vector<double> _voltageCh1;
-	vnl_vector<double> _timeCh1;
+	vnl_vector<double> m_voltageCh1;
+	vnl_vector<double> m_timeCh1;
+	vnl_vector<double> m_CurrentMeasures;
+	/*!
+  	m_CurrentMeasures Current Time (m_CurrentMeasures[0]) , ImageFrameNr (m_CurrentMeasures[1]) and Position (m_CurrentMeasures[2...n]) values
+	*/
+
 
 public:
 	
 	vnl_vector<double>  GetTimeCh1()
 	{
-		return _timeCh1;
+		return m_timeCh1;
 	}
 	vnl_vector<double>  GetVoltageCh1()
 	{
-		return _voltageCh1;
+		return m_voltageCh1;
 	}
 	void  SetTimeCh1(vnl_vector<double> timeCh1)
 	{
-		_timeCh1=timeCh1;
+		m_timeCh1=timeCh1;
 	}
 	void SetVoltageCh1(vnl_vector<double> voltageCh1 )
 	{
-		_voltageCh1=voltageCh1;
+		m_voltageCh1=voltageCh1;
 	}
 
+	vnl_vector<double>  * GetCurrentMeasures()
+	{
+		return &m_CurrentMeasures;
+	}
+
+	//void SetCurrentMeasures(vnl_vector<double> CurrentMeasures)
+	//{
+	//	 m_CurrentMeasures=CurrentMeasures;
+	//}
 
 	SharedObjects()
 	{
+			m_CurrentMeasures.set_size( 7 );
 	}
 
 	virtual ~SharedObjects()

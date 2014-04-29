@@ -320,8 +320,10 @@
 
 	Postbus 2040, 3000 CA Rotterdam
 	Bezoekadres: Wytemaweg 80, 3015 CN Rotterdam, kamer Ee-2312
-	E g.vanburken@erasmusmc.nl | T 010 704 40 38 | F 010 704 47 20
-	www.erasmusmc.nl/thoraxcenterbme 	\endcode
+	E g.vanburken@erasmusmc.nl | T 010 704 40 38 | F 010 704 47 20
+
+	www.erasmusmc.nl/thoraxcenterbme 
+	\endcode
 			
 	<BR>
 	Back to the \ref Multithreading_contents "Main Page"
