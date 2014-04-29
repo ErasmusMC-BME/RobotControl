@@ -9,7 +9,9 @@ int Lego::init()
 
 	//if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 	{
+		std::string name="receiverFromPC1";
 		bNXTFound=true;
+		NXT::StartProgram(&comm,name);
 		std::cout << "Connection made" << std::endl;
 		return 1;
 	}
@@ -521,8 +523,8 @@ void Lego::BoolSend(bool bValue, int inbox)
 
 std::string Lego::TextMessageRecieve(int mailbox, bool remove)
 {
-BYTE loByte = 17;
-BYTE hiByte = 45;
+//BYTE loByte = 17;
+//BYTE hiByte = 45;
 	ViUInt8 directCommandBuffer[] = { 0x13, mailbox+9, 0x00, remove };
 	ViUInt8 responseBuffer[64];
 	for(int i = 0; i < 64; i++)
@@ -532,19 +534,36 @@ BYTE hiByte = 45;
 	// Send the direct command to the NXT.
 	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
 		reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
-	for(int j = 0; j < 64; j++)
+	for(int j = 0; j <  sizeof( responseBuffer )/8; j++)
 		std::cout << (int)responseBuffer[j] << "\n";
 
+	std::string out=(char *)responseBuffer;
 
-WORD wordVal = MAKEWORD(loByte, hiByte);
-	return NULL;
+//WORD wordVal = MAKEWORD(loByte, hiByte);
+	return out;
 }
 int Lego::WordRecieve(int mailbox, bool remove)
 {
 	return 0;
 }
+
 bool Lego::BoolRecieve(int mailbox, bool remove)
 {
+	ViUInt8 directCommandBuffer[] = { 0x13, mailbox-1, 0x00, remove };
+	ViUInt8* directBoolCommandBuffer = NULL;
+
+	
+	ViUInt8 responseBuffer[64];
+	for(int i = 0; i < 64; i++)
+		responseBuffer[i] = 0x00;
+
+
+	// Send the direct command to the NXT.
+	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+		reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+
+	
+
 	return 0;
 }
 

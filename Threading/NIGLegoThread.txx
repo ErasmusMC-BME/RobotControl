@@ -58,7 +58,7 @@ template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::Update( void )
 
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Initialize()
 {  
-	init();
+	_bLegoFound=init();
 	//calibration();
 }
 

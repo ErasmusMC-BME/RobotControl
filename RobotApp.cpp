@@ -79,7 +79,7 @@ int main()
 	TrakstarThread<SharedObjects,TrakstarObjects> *TrakStarThreadObj;
 	TrakStarThreadObj=TrakstarThread<SharedObjects,TrakstarObjects>::New(); //Create thread
 	TrakStarThreadObj->SetInput(sharedobjs);
-
+#if 0
 	// initialize TraKStar object
 	double df_TrakStar = 80; // (Hz)
 	int recordLength_TrakStar = ceil( df_TrakStar * acquisitionTime );
@@ -94,12 +94,12 @@ int main()
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
 
-
-	utility<double> helper;
+#endif
+//	utility<double> helper;
 	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
 	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
-	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
-
+//	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
+//
 
 
 
@@ -110,11 +110,19 @@ int main()
 	LegoThread<SharedObjects,LegoObjects> *LegoThreadObj;
 	LegoThreadObj=LegoThread<SharedObjects,LegoObjects>::New(); //Create thread
 
+	
 	LegoThreadObj->SetInput(sharedobjs);
 	LegoThreadObj->Initialize();
+
 	LegoThreadObj->SetSync(syncTimer);
 	LegoThreadObj->Update();
+	//LegoThreadObj->BoolSend(bValue,MAILBOX_INIT);//init PID;
+	if(LegoThreadObj->isLegoFound())
+	{
 
+
+
+//	Wait(5000);
 	LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID;
 	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
@@ -137,13 +145,17 @@ int main()
 	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motor
 
-	LegoThreadObj->TextMessageRecieve(MAILBOX_RECIEVE,true);
-
 	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motor
-
+	Wait(3000);	
+	LegoThreadObj->TextMessageRecieve(7,false);
+	LegoThreadObj->TextMessageRecieve(MAILBOX_RECIEVE,false);
+	LegoThreadObj->TextMessageRecieve(9,false);
+	Wait(2000);
+	//LegoThreadObj->TextMessageRecieve(MAILBOX_RECIEVE,true);
+	}
 
 	// create Tiepie object
 	TiepieObjects * TiepieOut;
