@@ -119,44 +119,7 @@ template <class Tin,class Tout>  OpenCVThread<Tin,Tout> *  OpenCVThread<Tin,Tout
 
 template  <class Tin,class Tout>  void OpenCVThread<Tin,Tout>::ThreadEntryPoint( void )
 {
-	 ExecuteCommand(); 
-}
-
-template  <class Tin,class Tout>  void OpenCVThread<Tin,Tout>::Update( void )
-{
-
-}
-# if 0
-template  <class Tin,class Tout> void OpenCVThread<Tin,Tout>::Initialize( void )  // Initialisation of the object
-{
-	thread<Tin,Tout>::Initialize( );
-	
-	m_OutputData = new Tout;
-
-	_bOpenCVFound=false;
-	unsigned int recordLength_Video=_numSamples;	
-
-	_timeVideo.set_size( recordLength_Video );
-	m_OutputData->OpenCVObjects::SetTimeVideo(&_timeVideo);
-	m_OutputData->OpenCVObjects::SetActualFrameNr(&_ActualFrameNr);
-
-	DuplicatorType::Pointer	dummyPlanetype;
-	_VideoImage.assign(recordLength_Video,dummyPlanetype); 
-	for (int i=0;i<recordLength_Video;i++)
-	{
-		_timeVideo[i]  = 0.0;   
-		_VideoImage[i] = DuplicatorType::New();   
-	}
-	m_OutputData->OpenCVObjects::SetVideoImage(&_VideoImage);
-
-
-}
-#endif
-
-template  <class Tin,class Tout> void OpenCVThread<Tin,Tout>::ExecuteCommand()
-{  
-
-	unsigned int recordLength_Video=_numSamples;	
+unsigned int recordLength_Video=_numSamples;	
 
 	CvCapture* capture = cvCaptureFromCAM( CV_CAP_ANY );
 
@@ -221,3 +184,5 @@ template  <class Tin,class Tout> void OpenCVThread<Tin,Tout>::ExecuteCommand()
 	_endthread();
 	return ;
 }
+
+

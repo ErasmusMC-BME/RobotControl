@@ -44,36 +44,6 @@ template  <class Tin,class Tout>  void  TrakstarThread<Tin,Tout>::Initialize(con
 		++fmt;
 	}
 	va_end(args);
-	Initialize(  );
-};
-
-
-template  <class Tin,class Tout>  void TrakstarThread<Tin,Tout>::ThreadEntryPoint( void )
-{
-	ExecuteCommand(); 
-	// This is the desired entry-point-function but to get
-	// here we have to use a 2 step procedure involving
-	// the ThreadStaticEntryPoint() function.
-
-}
-
-template  <class Tin,class Tout>  void TrakstarThread<Tin,Tout>::Update( void )
-{
-
-}
-
-
-template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::ExecuteCommand()
-{  
-	RecordPositionData();
-	_endthread(); // call to OS class
-	return ;
-}
-
-
-
-template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::Initialize( void )  // Initialisation of the object
-{
 	thread<Tin,Tout>::Initialize( );
 
 	m_OutputData = new Tout;
@@ -108,6 +78,18 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::Initialize( void
 	}
 
 };
+
+
+template  <class Tin,class Tout>  void TrakstarThread<Tin,Tout>::ThreadEntryPoint( void )
+{
+	RecordPositionData();
+	_endthread(); // call to OS class
+
+	// This is the desired entry-point-function but to get
+	// here we have to use a 2 step procedure involving
+	// the ThreadStaticEntryPoint() function.
+
+}
 
 
 template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionData()

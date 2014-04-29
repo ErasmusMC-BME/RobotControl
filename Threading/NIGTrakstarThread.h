@@ -22,7 +22,7 @@
 #include <map>
 #include <list>
 #include <vector>
-#include <process.h>    /* _beginthread, _endthread */
+#include <process.h>    /* CreateRecorderThread, _endthread */
 #define MAX_THREADS 1
 #include "Timer.h"
 #include "thread.h"
@@ -109,11 +109,8 @@ public:
 	TrakstarThread();
 	~TrakstarThread(void);
 	static TrakstarThread<Tin,Tout> * New(thread<Tin,Tout> * _thread=NULL);
-	virtual void Initialize(const char *fmt, ...);
-	virtual void Initialize();
-	virtual void Update();
+	virtual void Initialize(const char *fmt=NULL, ...);	
 	virtual void ThreadEntryPoint();
-	virtual void ExecuteCommand();
 	bool isTrakstarFound(){return _bTrakstarFound;}
 
 
@@ -136,38 +133,6 @@ public:
   void PrintSystemParamters();
   void PrintSensorParameters(int sensorID);
 	void PrintTransmitterParameters(int transmitterID);
-	static unsigned __stdcall ThreadStaticTrakstarInitializeEntryPoint(void * pThis)
-	{
-      TrakstarThread * pthX = (TrakstarThread*)pThis;   // the tricky cast
-
-      pthX->Initialize();    // now call the true entry-point-function
-
-      // A thread terminates automatically if it completes execution,
-      // or it can terminate itself with a call to _endthread().
-      return 1;          // the thread exit code
-   }
-#if 0
-  static unsigned __stdcall ThreadStaticRecordPositionDataEntryPoint(void * pThis)
-  {
-    TrakstarThread * pthX = (TrakstarThread*)pThis;   // the tricky cast
-
-    pthX->RecordPositionData();    // now call the true entry-point-function
-
-    // A thread terminates automatically if it completes execution,
-    // or it can terminate itself with a call to _endthread().
-    return 1;          // the thread exit code
-  }
-	static unsigned __stdcall ThreadStaticTrakstarEntryPoint(void * pThis)
-	{
-      TrakstarThread * pthX = (TrakstarThread*)pThis;   // the tricky cast
-
-      pthX->ThreadEntryPoint();    // now call the true entry-point-function
-
-      // A thread terminates automatically if it completes execution,
-      // or it can terminate itself with a call to _endthread().
-      return 1;          // the thread exit code
-   }
-#endif
   void RecordPositionData();
 private:
 };

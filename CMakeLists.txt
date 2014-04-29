@@ -43,7 +43,8 @@ INCLUDE_DIRECTORIES($ENV{BME_BASE_DIR}/Ascension/Include)
 INCLUDE_DIRECTORIES($ENV{BME_BASE_DIR}/NXT++.07/include)
 INCLUDE_DIRECTORIES($ENV{BME_BASE_DIR}/TiePie/include)
 
-INCLUDE_DIRECTORIES($ENV{NIG_COMMON_DIR}/Timer)
+INCLUDE_DIRECTORIES($ENV{NIG_COMMON_DIR}/../thread)
+INCLUDE_DIRECTORIES($ENV{NIG_COMMON_DIR}/../Timer)
 INCLUDE_DIRECTORIES(${RobotApp_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${RobotApp_SOURCE_DIR}/Threading)
 INCLUDE_DIRECTORIES(${ITK_DIR}/../Modules/Bridge/VtkGlue/include)
@@ -69,7 +70,7 @@ SET_SOURCE_FILES_PROPERTIES( ${HW6_hdr} PROPERTIES HEADER_FILE_ONLY TRUE )
 
 SET( RobotBaseFiles 
 	$ENV{NIG_COMMON_DIR}/utility.h
-	$ENV{NIG_COMMON_DIR}/Thread.h
+	$ENV{NIG_COMMON_DIR}/../thread//Thread.h
 	Threading/NIGMultiThread.h
 	Threading/NIGTiepieThread.txx
 	Threading/NIGTiepieThread.h
@@ -80,8 +81,8 @@ SET( RobotBaseFiles
 	Threading/NIGTrakstarThread.txx
 	Threading/NIGTrakstarThread.h
 	MainPage.h
-	$ENV{NIG_COMMON_DIR}/Timer/Timer.cpp
-	$ENV{NIG_COMMON_DIR}/Timer/Timer.h
+	$ENV{NIG_COMMON_DIR}/../Timer/Timer.cpp
+	$ENV{NIG_COMMON_DIR}/../Timer/Timer.h
 	${EXT_hdr}
 	${EXT_files}
  	)

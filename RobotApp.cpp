@@ -10,7 +10,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <windows.h>          // for HANDLE
-#include <process.h>    /* _beginthread, _endthread */
+#include <process.h>    /* CreateRecorderThread, _endthread */
 
 
 //TiePie
@@ -74,11 +74,10 @@ int main()
 	int recordLength_TrakStar = ceil( df_TrakStar * acquisitionTime );
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
-	TrakStarThreadObj->Update(); // nothing yet (not sure if we use)
-	TrakStarThreadObj->_BeginThread();
-	TrakStarThreadObj->_ResumeThread();
+	TrakStarThreadObj->CreateRecorderThread();
+	TrakStarThreadObj->StartRecorderThread();
 	// wait for the measurement threads to finish
-	TrakStarThreadObj->_WaitForSingleObject();
+	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
 	// retrieve and save data
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
@@ -104,7 +103,6 @@ int main()
 	LegoThreadObj->Initialize();
 
 	LegoThreadObj->SetSync(syncTimer);
-	LegoThreadObj->Update();
 	if(LegoThreadObj->isLegoFound())
 	{
 
@@ -152,18 +150,17 @@ int main()
 	dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
 	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
 	TiepieThreadObj->SetSync(syncTimer);
-	TiepieThreadObj->Update();
 	TiepieThreadObj->TestCalibrationDate();
 	
-	TiepieThreadObj->_BeginThread();
-	TiepieThreadObj->_ResumeThread();
-	TiepieThreadObj->_WaitForSingleObject();
+	TiepieThreadObj->CreateRecorderThread();
+	TiepieThreadObj->StartRecorderThread();
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
 	TiepieThreadObj->GetOutput();
 
 	
-	LegoThreadObj->_BeginThread();
-	LegoThreadObj->_ResumeThread();
-	LegoThreadObj->_WaitForSingleObject();
+	LegoThreadObj->CreateRecorderThread();
+	LegoThreadObj->StartRecorderThread();
+	LegoThreadObj->WaitUntilRecorderThreadIsDone();
 	LegoOut = LegoThreadObj->GetOutput();
 
 
@@ -174,9 +171,8 @@ int main()
 	OpenCVThreadObj->SetInput(sharedobjs);
 	OpenCVThreadObj->Initialize();
 	OpenCVThreadObj->SetSync(syncTimer);
-	OpenCVThreadObj->Update();
-	OpenCVThreadObj->_BeginThread();
-	OpenCVThreadObj->_ResumeThread();
+	OpenCVThreadObj->CreateRecorderThread();
+	OpenCVThreadObj->StartRecorderThread();
 
 	do 
 	{
@@ -198,7 +194,7 @@ int main()
 
 		}
 	} while (1);
-	OpenCVThreadObj->_WaitForSingleObject();
+	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 
 	getchar();	
 

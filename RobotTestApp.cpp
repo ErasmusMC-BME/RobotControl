@@ -10,7 +10,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <windows.h>          // for HANDLE
-#include <process.h>    /* _beginthread, _endthread */
+#include <process.h>    /* CreateRecorderThread, _endthread */
 
 
 //TiePie
@@ -86,10 +86,10 @@ int main()
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
 	TrakStarThreadObj->Update(); // nothing yet (not sure if we use)
-	TrakStarThreadObj->_BeginThread();
-	TrakStarThreadObj->_ResumeThread();
+	TrakStarThreadObj->CreateRecorderThread();
+	TrakStarThreadObj->StartRecorderThread();
 	// wait for the measurement threads to finish
-	TrakStarThreadObj->_WaitForSingleObject();
+	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
 	// retrieve and save data
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
@@ -115,7 +115,6 @@ int main()
 	LegoThreadObj->Initialize();
 
 	LegoThreadObj->SetSync(syncTimer);
-	LegoThreadObj->Update();
 	//LegoThreadObj->BoolSend(bValue,MAILBOX_INIT);//init PID;
 	if(LegoThreadObj->isLegoFound())
 	{
@@ -169,19 +168,18 @@ int main()
 	dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
 	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
 	TiepieThreadObj->SetSync(syncTimer);
-	TiepieThreadObj->Update();
 	TiepieThreadObj->TestCalibrationDate();
 	
-	TiepieThreadObj->_BeginThread();
-	TiepieThreadObj->_ResumeThread();
-	TiepieThreadObj->_WaitForSingleObject();
+	TiepieThreadObj->CreateRecorderThread();
+	TiepieThreadObj->StartRecorderThread();
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
 	TiepieThreadObj->GetOutput();
 	
 	
 	
-	LegoThreadObj->_BeginThread();
-	LegoThreadObj->_ResumeThread();
-	LegoThreadObj->_WaitForSingleObject();
+	LegoThreadObj->CreateRecorderThread();
+	LegoThreadObj->StartRecorderThread();
+	LegoThreadObj->WaitUntilRecorderThreadIsDone();
 	LegoOut = LegoThreadObj->GetOutput();
 
 
@@ -196,8 +194,8 @@ int main()
 	OpenCVThreadObj->Initialize();
 	OpenCVThreadObj->SetSync(syncTimer);
 	OpenCVThreadObj->Update();
-	OpenCVThreadObj->_BeginThread();
-	OpenCVThreadObj->_ResumeThread();
+	OpenCVThreadObj->CreateRecorderThread();
+	OpenCVThreadObj->StartRecorderThread();
 
 	do 
 	{
@@ -219,7 +217,7 @@ int main()
 
 		}
 	} while (1);
-	OpenCVThreadObj->_WaitForSingleObject();
+	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 
 
 	getchar();	
@@ -230,12 +228,12 @@ int main()
 	//TrakstarObjects * Out;
 
 	// start threads
-	TiepieThreadObj->_ResumeThread();
-	TrakStarThreadObj->_ResumeThread();
+	TiepieThreadObj->StartRecorderThread();
+	TrakStarThreadObj->StartRecorderThread();
 
 	// wait for the measurement threads to finish
-	TiepieThreadObj->_WaitForSingleObject();
-	TrakStarThreadObj->_WaitForSingleObject();
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
+	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
 	
 
 	// retrieve and save data
@@ -357,7 +355,7 @@ int mainAlex()
 	//TiepieThreadObj->Initialize();
 	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
 	TiepieThreadObj->SetSync(syncTimer);
-	TiepieThreadObj->Update();
+
 	
 	// create TraKStar object
 	TrakstarObjects * TrakstarOut;
@@ -373,26 +371,25 @@ int mainAlex()
 	//TrakStarThreadObj->Initialize();
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
-	TrakStarThreadObj->Update();
 
 
 
 	// create Tiepie acquisition handles
-	//Tiepiehandle = (HANDLE)_beginthreadex(NULL, 0, TiepieThread::ThreadStaticStartMeasurementCh1EntryPoint, TiepieThreadObj, CREATE_SUSPENDED, &Tiepieid);
-	TiepieThreadObj->_BeginThread();
+	//Tiepiehandle = (HANDLE)CreateRecorderThreadex(NULL, 0, TiepieThread::ThreadStaticStartMeasurementCh1EntryPoint, TiepieThreadObj, CREATE_SUSPENDED, &Tiepieid);
+	TiepieThreadObj->CreateRecorderThread();
 	// create TraKStarTraKStar acquisition handles
-	//Trakstarhandle = (HANDLE)_beginthreadex(NULL, 0, TrakstarThread::ThreadStaticRecordPositionDataEntryPoint, TrakStarThreadObj, CREATE_SUSPENDED, &Trakstarid);
-	TrakStarThreadObj->_BeginThread();
+	//Trakstarhandle = (HANDLE)CreateRecorderThreadex(NULL, 0, TrakstarThread::ThreadStaticRecordPositionDataEntryPoint, TrakStarThreadObj, CREATE_SUSPENDED, &Trakstarid);
+	TrakStarThreadObj->CreateRecorderThread();
 
 	// start threads
-	TiepieThreadObj->_ResumeThread();
-	TrakStarThreadObj->_ResumeThread();
+	TiepieThreadObj->StartRecorderThread();
+	TrakStarThreadObj->StartRecorderThread();
 
 	Beep( 750, 300 );
 
 	// wait for the measurement threads to finish
-	TiepieThreadObj->_WaitForSingleObject();
-	TrakStarThreadObj->_WaitForSingleObject();
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
+	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
 	
 
 	// retrieve and save data

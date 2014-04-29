@@ -26,7 +26,7 @@
 #include <map>
 #include <list>
 #include <vector>
-#include <process.h>    /* _beginthread, _endthread */
+#include <process.h>    /* CreateRecorderThread, _endthread */
 #endif
 #include "NXT++.h"
 #include "Timer.h"

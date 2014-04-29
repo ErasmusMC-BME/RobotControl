@@ -24,7 +24,7 @@
 #include <map>
 #include <list>
 #include <vector>
-#include <process.h>    /* _beginthread, _endthread */
+#include <process.h>    /* CreateRecorderThread, _endthread */
 #define MAX_THREADS 1
 #include "Timer.h"
 
@@ -84,11 +84,8 @@ public:
 	TiepieThread();
 	~TiepieThread(void);
 	static TiepieThread<Tin,Tout> * New(void);
-	virtual void Initialize(const char *fmt, ...);
-	virtual void Initialize();
-	virtual void Update();
+	virtual void Initialize(const char *fmt=NULL, ...);
 	virtual void ThreadEntryPoint();
-	virtual void ExecuteCommand();
 	bool isTiepieFound(){return _bTiepieFound;}
 
 	Tout *  GetOutput();
@@ -189,8 +186,7 @@ public:
      // the ThreadStaticEntryPoint() function.
 
   }
-  void Initialize();
-  	void TestCalibrationDate();
+ 	void TestCalibrationDate();
 	void WriteEcgSample();
   void PrepareCh1ForAcq( dword recLen, double* sensCh1, double* fs );
   void StartMeasurementCh1();

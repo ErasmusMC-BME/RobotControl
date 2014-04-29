@@ -31,7 +31,31 @@ the format string gives a format code for each parameter  <BR>
 
 template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::Initialize(const char *fmt, ...)
 {
-	Initialize(); // old initialization of TiePie
+	//  initialization of TiePie
+	word wAddress = 0x308;
+	char sssPath[22];
+	strcpy(sssPath,"hs3.dll");
+
+	if ( OpenDLL(sssPath) ) //Tiepie test
+	{	
+		if ( InitInstrument( wAddress ) == E_NO_ERRORS )
+		{
+			_bTiepieFound=true;
+			std::cerr << "TiePie initialization finished." << std::endl;
+		}
+		else
+		{
+			_bTiepieFound=false;
+			std::cerr << "TiePie initialization failed." << std::endl;
+		}
+	}
+	else
+	{
+		_bTiepieFound=false;
+		std::cerr << "Opening TiePie DLL failed." << std::endl;
+	}
+
+
 
   // test var 
 	va_list args;
@@ -68,36 +92,6 @@ template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::Initialize(const 
 	va_end(args);
 	
 };
-template  <class Tin,class Tout> void TiepieThread<Tin,Tout>::Initialize( void )  // Initialisation of the object
-{
-	thread<Tin,Tout>::Initialize( );
-	//_bTiepieFound=false;
-	//std::cerr << "TiePie dummy finished." << std::endl;
-	//return;
-	word wAddress = 0x308;
-	char sssPath[22];
-	strcpy(sssPath,"hs3.dll");
-
-	if ( OpenDLL(sssPath) ) //Tiepie test
-	{	
-		if ( InitInstrument( wAddress ) == E_NO_ERRORS )
-		{
-			_bTiepieFound=true;
-			std::cerr << "TiePie initialization finished." << std::endl;
-		}
-		else
-		{
-			_bTiepieFound=false;
-			std::cerr << "TiePie initialization failed." << std::endl;
-		}
-	}
-	else
-	{
-		_bTiepieFound=false;
-		std::cerr << "Opening TiePie DLL failed." << std::endl;
-	}
-}
-
 
 template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::ThreadEntryPoint( void )
 {
@@ -139,21 +133,11 @@ template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::ThreadEntryPoint(
 
 }
 
-template  <class Tin,class Tout> void TiepieThread<Tin,Tout>::ExecuteCommand()
-{  
-	_endthread();
-	return ;
-}
 
 template  <class Tin,class Tout> Tout  *  TiepieThread<Tin,Tout>::GetOutput( )
 {
 	RetrieveCh1DataFromInstrument();
 	return m_OutputData;
-}
-template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::Update( void )
-{
-
-
 }
 
 template  <class Tin,class Tout>  void TiepieThread<Tin,Tout>::TestCalibrationDate ()

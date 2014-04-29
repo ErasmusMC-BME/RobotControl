@@ -22,7 +22,7 @@
 #include <map>
 #include <list>
 #include <vector>
-#include <process.h>    /* _beginthread, _endthread */
+#include <process.h>    /* CreateRecorderThread, _endthread */
 
 #include "Timer.h"
 #include "thread.h"
@@ -171,10 +171,7 @@ public:
 	~OpenCVThread(void);
 	static OpenCVThread<Tin,Tout> * New(thread<Tin,Tout> * _thread=NULL);
 	virtual void Initialize(const char *fmt=NULL, ...);
-	//virtual void Initialize();
-	virtual void Update();
 	virtual void ThreadEntryPoint();
-	virtual void ExecuteCommand();
 	bool isOpenCVFound() {	return _bOpenCVFound;}
 
 private:
