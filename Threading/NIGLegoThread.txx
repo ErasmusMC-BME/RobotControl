@@ -25,45 +25,7 @@ template <class Tin,class Tout>  LegoThread<Tin,Tout> *  LegoThread<Tin,Tout>::N
 
 template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const char *fmt, ...)
 {
-	va_list args;
-	va_start(args, fmt);
-
-	while (*fmt != '\0') {
-		if (*fmt == 'd') {
-			int i = va_arg(args, int);
-			std::cout << i << '\n';
-		} else if (*fmt == 's') {
-			char * s = va_arg(args, char*);
-			std::cout << s << '\n';
-		}
-		++fmt;
-	}
-	va_end(args);
-};
-
-template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( void )
-{
-	ExecuteCommand(); 
-	// This is the desired entry-point-function but to get
-	// here we have to use a 2 step procedure involving
-	// the ThreadStaticEntryPoint() function.
-
-}
-
-template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::Update( void )
-{
-
-}
-
-
-template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Initialize()
-{  
-
-	bool _bLegoFound = false;
-	
-	if(NXT::Open(&comm)) //initialize the NXT and continue if it succeds USB 
-
-	//if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
+	if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 	{
 		std::string name="receiverFromPC1";
 		_bLegoFound=true;
@@ -77,35 +39,31 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Initialize()
 		std::cout << "Could not make connection" << std::endl;
 		return ;
 	}
+};
 
+template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( void )
+{
+
+	// This is the desired entry-point-function but to get
+	// here we have to use a 2 step procedure involving
+	// the ThreadStaticEntryPoint() function.
+		_endthread();
 }
+
 
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Calibrate()
 {  
 	bool bValue=true;
 	if(isLegoFound())
 	{
-
-
-	BoolSend(bValue,MAILBOX_INIT);//init PID;
-	WordSend(0,MAILBOX_A);//Z Plane + <---> -
-	WordSend(0,MAILBOX_B);//Angle 0 <---> -
-	WordSend(0,MAILBOX_C);//Image Plane  + <---> -
-	BoolSend(bValue,MAILBOX_START);//Start Motor
+		BoolSend(bValue,MAILBOX_INIT);//init PID;
+		WordSend(0,MAILBOX_A);//Z Plane + <---> -
+		WordSend(0,MAILBOX_B);//Angle 0 <---> -
+		WordSend(0,MAILBOX_C);//Image Plane  + <---> -
+		BoolSend(bValue,MAILBOX_START);//Start Motor
 	}
+}
 
-}
-template  <class Tin,class Tout> void LegoThread<Tin,Tout>::ExecuteCommand()
-{  
-	float z = 1;
-	float a = 0;
-	float b=  0;
-	//move_relative(z, a, b);
-	//Time = m_timer->getElapsedTimeInSec();
-	//std::cout << "End Time Lego: " << Time << std::endl;
-	//std::cout << "LegoCommand: " << _LegoCommand << std::endl;
-	_endthread();
-}
 
 
 

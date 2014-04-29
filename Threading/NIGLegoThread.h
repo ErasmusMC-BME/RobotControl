@@ -28,12 +28,19 @@
 #include <vector>
 #include <process.h>    /* _beginthread, _endthread */
 #endif
-
+#include "NXT++.h"
 #include "Timer.h"
-#include "legocontrol.h"
 #include "NIGMultiThread.h"
 #include "Thread.h"
 #include "vnl/vnl_vector.h"
+
+const int MAILBOX_A = 1;	//! Position Mailbox for Motor port A on the NXT
+const int MAILBOX_B = 2;	//! Position Mailbox for Motor port B on the NXT
+const int MAILBOX_C = 3;	//! Position Mailbox for Motor port C on the NXT
+const int MAILBOX_INIT   = 4; //! Intialization Mailbox for Motors
+const int MAILBOX_START  = 5; //! Start Mailbox for Motors
+const int MAILBOX_RESET  = 6; //! Start Mailbox for Motors
+const int MAILBOX_RECIEVE  = 8; 
 
 
 
@@ -98,13 +105,11 @@ public:
 	}
 
 
-	virtual void Initialize();
-	virtual void Initialize(const char *fmt, ...);
-	virtual void Update();
+	virtual void Initialize(const char *fmt=NULL, ...);
+
 	virtual void ThreadEntryPoint();
-	virtual void ExecuteCommand();
 	bool isLegoFound() {return _bLegoFound;}
-	
+
 	virtual void Calibrate();
 
 	void TextMessageSend(std::string message, int inbox);
