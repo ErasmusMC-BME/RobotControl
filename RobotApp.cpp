@@ -78,30 +78,30 @@ int main()
 	TrakStarThreadObj->SetSync(syncTimer);
 	TrakStarThreadObj->CreateRecorderThread();
 
-	// create Tiepie object
-	TiepieObjects * TiepieOut;
-	TiepieThread<SharedObjects,TiepieObjects> *TiepieThreadObj;
-	TiepieThreadObj=TiepieThread<SharedObjects,TiepieObjects>::New(); //Create thread
-	TiepieThreadObj->SetInput(sharedobjs);
+	//// create Tiepie object
+	//TiepieObjects * TiepieOut;
+	//TiepieThread<SharedObjects,TiepieObjects> *TiepieThreadObj;
+	//TiepieThreadObj=TiepieThread<SharedObjects,TiepieObjects>::New(); //Create thread
+	//TiepieThreadObj->SetInput(sharedobjs);
 
-	// initialize Tiepie object	
-	double df_Tiepie = 1000.0; // (Hz)
-	double sensCh1_Tiepie = 1.0;
-	dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
-	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
-	TiepieThreadObj->SetSync(syncTimer);
-	TiepieThreadObj->CreateRecorderThread();
+	//// initialize Tiepie object	
+	//double df_Tiepie = 1000.0; // (Hz)
+	//double sensCh1_Tiepie = 1.0;
+	//dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
+	//TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
+	//TiepieThreadObj->SetSync(syncTimer);
+	//TiepieThreadObj->CreateRecorderThread();
 
-		// create OpenCV object
-	OpenCVObjects * VideoOut;
-	OpenCVThread<SharedObjects,OpenCVObjects> *OpenCVThreadObj;
-	OpenCVThreadObj=OpenCVThread<SharedObjects,OpenCVObjects>::New(); //Create thread
-	OpenCVThreadObj->SetInput(sharedobjs);
+	//	// create OpenCV object
+	//OpenCVObjects * VideoOut;
+	//OpenCVThread<SharedObjects,OpenCVObjects> *OpenCVThreadObj;
+	//OpenCVThreadObj=OpenCVThread<SharedObjects,OpenCVObjects>::New(); //Create thread
+	//OpenCVThreadObj->SetInput(sharedobjs);
 	
-	// initialize OpenCV object
-	OpenCVThreadObj->Initialize();
-	OpenCVThreadObj->SetSync(syncTimer);
-	OpenCVThreadObj->CreateRecorderThread();
+	//// initialize OpenCV object
+	//OpenCVThreadObj->Initialize();
+	//OpenCVThreadObj->SetSync(syncTimer);
+	//OpenCVThreadObj->CreateRecorderThread();
 
 	// create Lego object
 	bool bValue=true;
@@ -113,11 +113,12 @@ int main()
 	// initialize Lego object
 	LegoThreadObj->Initialize();
 	LegoThreadObj->SetSync(syncTimer);
+  LegoThreadObj->Calibrate();
 	LegoThreadObj->CreateRecorderThread();
 		
 	TrakStarThreadObj->StartRecorderThread();
-	OpenCVThreadObj->StartRecorderThread();
-	TiepieThreadObj->StartRecorderThread();
+	//OpenCVThreadObj->StartRecorderThread();
+	//TiepieThreadObj->StartRecorderThread();
 
 	if(LegoThreadObj->isLegoFound())
 	{
@@ -126,34 +127,34 @@ int main()
 
 
 
-	do 
-	{
-		if( OpenCVThreadObj->isOpenCVFound())
-		{
-			VideoOut=OpenCVThreadObj->GetOutput();
-			_timeVideo=VideoOut->GetTimeVideo();
-			_VideoImage=VideoOut->GetVideoImage();
+	//do 
+	//{
+	//	if( OpenCVThreadObj->isOpenCVFound())
+	//	{
+	//		VideoOut=OpenCVThreadObj->GetOutput();
+	//		_timeVideo=VideoOut->GetTimeVideo();
+	//		_VideoImage=VideoOut->GetVideoImage();
 
-			//std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
-			WriterType::Pointer writer = WriterType::New();
-			writer->SetFileName("d:\\cam23.tif");
-			ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
-			writer->SetInput(clonedImage);
-			writer->Update();
-			utility<double> helper;
-			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+	//		//std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
+	//		WriterType::Pointer writer = WriterType::New();
+	//		writer->SetFileName("d:\\cam23.tif");
+	//		ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
+	//		writer->SetInput(clonedImage);
+	//		writer->Update();
+	//		utility<double> helper;
+	//		helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
 
 
-		}
-	} while (1);
+	//	}
+	//} while (1);
 
-	// wait for the measurement threads to finish
+	//// wait for the measurement threads to finish
 
 
 
 	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
-	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
-	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
+	/*TiepieThreadObj->WaitUntilRecorderThreadIsDone();*/
+	//OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 	// retrieve and save data
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
@@ -182,9 +183,9 @@ int main()
 
 
 	double zz,aa,bb;
-	zz=-1*Zfactor;
-	aa=-45*Anglefactor;
-	bb=-45*Imagefactor;
+	zz=-1*Zfactor; // corresponds to 1 cm
+	aa=-45*Anglefactor; // corresponds to 45 deg
+	bb=-45*Imagefactor; // corresponds top 45 deg
 	LegoThreadObj->WordSend(zz,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(aa,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -

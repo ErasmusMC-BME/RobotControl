@@ -96,13 +96,15 @@ public:
 	~LegoThread(void);
 	static LegoThread<Tin,Tout> * New(thread<Tin,Tout> * _thread=NULL);
 
-	LegoThread* LegoThread::NewLC()
+	// just a test of Gerard
+  LegoThread* LegoThread::NewLC()
 	{
 	LegoThread * self= new  LegoThread();
 	//CleanupStack::PushL(self);
 	//self->ConstructL();
 	return self;
 	}
+  // END just a test of Gerard
 
 
 	virtual void Initialize(const char *fmt=NULL, ...);
