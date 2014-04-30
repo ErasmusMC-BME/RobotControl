@@ -30,13 +30,13 @@ template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const c
 		std::string name="receiverFromPC1";
 		_bLegoFound=true;
 		NXT::StartProgram(&comm,name);
-		std::cout << "Connection made" << std::endl;
+		std::cout << "NXT Connection made" << std::endl;
 		return;
 	}
 	else
 	{
 		_bLegoFound = false;
-		std::cout << "Could not make connection" << std::endl;
+		std::cout << "NXT connection failed" << std::endl;
 		return ;
 	}
 };

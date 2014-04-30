@@ -96,6 +96,7 @@ public:
 	~LegoThread(void);
 	static LegoThread<Tin,Tout> * New(thread<Tin,Tout> * _thread=NULL);
 
+	// Test for Gerard
 	LegoThread* LegoThread::NewLC()
 	{
 	LegoThread * self= new  LegoThread();
@@ -103,7 +104,7 @@ public:
 	//self->ConstructL();
 	return self;
 	}
-
+	//End Test for Gerard
 
 	virtual void Initialize(const char *fmt=NULL, ...);
 

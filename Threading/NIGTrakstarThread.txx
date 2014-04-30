@@ -73,6 +73,7 @@ template  <class Tin,class Tout>  void  TrakstarThread<Tin,Tout>::Initialize(con
 	}
 	else
 	{
+		 std::cout  << "TrakStar initialization failed." << std::endl;
 		_bTrakstarFound = false;
 		_bTrakstarReady = false;
 	}
@@ -154,15 +155,12 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
 			}
 
 		}
+		m_OutputData->TrakstarObjects::SetMeasures(_measures);
+		SET_SYSTEM_PARAMETER(SELECT_TRANSMITTER,	-1);
 	}
-	m_OutputData->TrakstarObjects::SetMeasures(_measures);
 
 	// clean up 
 	printf("Switch off transmitter\n");
-	SET_SYSTEM_PARAMETER(SELECT_TRANSMITTER,	-1);
-	_endthread();
-
-
 }
 
 template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::errorHandler(int error)

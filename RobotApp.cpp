@@ -12,7 +12,10 @@
 #include <windows.h>          // for HANDLE
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
-
+#define USEOPENCVTHREAD
+#define USELEGOTHREAD
+#define USETIEPIETHREAD
+#define USETRAKSTARTHREAD
 //TiePie
 #include "TiePieDLL.h"
 #include "tiepie.h"
@@ -44,6 +47,7 @@ template <class Tin,class Tout>  thread<Tin,Tout> *  thread<Tin,Tout>::m_thread=
 int main()
 {
 	// user variables
+	utility<double> helper;
 	double acquisitionTime = 30; // (sec)
 	std::string acquisitionTag = "010";
 	//std::string dataPath = "D:/Data/ExperimentalData/CalibrationThreeWirePhantom/InitExperiment_19-Jan-2014/";
@@ -63,7 +67,7 @@ int main()
 	syncTimer->start();	
 	
 	// create threads 	
-	
+	#ifdef USETRAKSTARTHREAD
 
 	// create TraKStar object
 	TrakstarObjects * TrakstarOut;
@@ -77,7 +81,9 @@ int main()
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
 	TrakStarThreadObj->CreateRecorderThread();
+#endif
 
+#ifdef USETIEPIETHREAD
 	// create Tiepie object
 	TiepieObjects * TiepieOut;
 	TiepieThread<SharedObjects,TiepieObjects> *TiepieThreadObj;
@@ -91,7 +97,9 @@ int main()
 	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
 	TiepieThreadObj->SetSync(syncTimer);
 	TiepieThreadObj->CreateRecorderThread();
+#endif
 
+#ifdef USEOPENCVTHREAD
 		// create OpenCV object
 	OpenCVObjects * VideoOut;
 	OpenCVThread<SharedObjects,OpenCVObjects> *OpenCVThreadObj;
@@ -102,9 +110,12 @@ int main()
 	OpenCVThreadObj->Initialize();
 	OpenCVThreadObj->SetSync(syncTimer);
 	OpenCVThreadObj->CreateRecorderThread();
+#endif
 
-	// create Lego object
 	bool bValue=true;
+
+#ifdef USELEGOTHREAD
+	// create Lego object
 	LegoObjects * LegoOut;
 	LegoThread<SharedObjects,LegoObjects> *LegoThreadObj;
 	LegoThreadObj=LegoThread<SharedObjects,LegoObjects>::New(); //Create thread
@@ -113,6 +124,7 @@ int main()
 	// initialize Lego object
 	LegoThreadObj->Initialize();
 	LegoThreadObj->SetSync(syncTimer);
+	LegoThreadObj->Calibrate();
 	LegoThreadObj->CreateRecorderThread();
 		
 	TrakStarThreadObj->StartRecorderThread();
@@ -124,8 +136,8 @@ int main()
 		LegoThreadObj->StartRecorderThread();
 	}
 
-
-
+#endif
+#ifdef USEOPENCVTHREAD
 	do 
 	{
 		if( OpenCVThreadObj->isOpenCVFound())
@@ -142,22 +154,33 @@ int main()
 			writer->Update();
 			utility<double> helper;
 			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
-
-
 		}
 	} while (1);
-
+#endif
 	// wait for the measurement threads to finish
 
 
-
+#ifdef USETRAKSTARTHREAD
 	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
-	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
-	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 	// retrieve and save data
 	TrakstarOut = TrakStarThreadObj->GetOutput();
 	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
+	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
+#endif
 
+#ifdef USETIEPIETHREAD
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
+	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
+	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
+#endif
+
+
+#ifdef USEOPENCVTHREAD
+OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
+#endif
+
+
+#ifdef USELEGOTHREAD
 	LegoThreadObj->WaitUntilRecorderThreadIsDone();
 	LegoOut = LegoThreadObj->GetOutput();
 
@@ -196,15 +219,7 @@ int main()
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);// Move motors to 0 Position
 
 	}
-
-
-
-
-	utility<double> helper;
-	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
-	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
-	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
-	//
+#endif
 
 	getchar();	
 
