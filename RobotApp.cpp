@@ -12,9 +12,9 @@
 #include <windows.h>          // for HANDLE
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
-#define USEOPENCVTHREAD
+// #define USEOPENCVTHREAD
 #define USELEGOTHREAD
-#define USETIEPIETHREAD
+// #define USETIEPIETHREAD
 #define USETRAKSTARTHREAD
 //TiePie
 #include "TiePieDLL.h"
@@ -127,9 +127,6 @@ int main()
 	LegoThreadObj->Calibrate();
 	LegoThreadObj->CreateRecorderThread();
 		
-	TrakStarThreadObj->StartRecorderThread();
-	OpenCVThreadObj->StartRecorderThread();
-	TiepieThreadObj->StartRecorderThread();
 
 	if(LegoThreadObj->isLegoFound())
 	{
@@ -137,6 +134,18 @@ int main()
 	}
 
 #endif
+  
+#ifdef USETRAKSTARTHREAD
+  TrakStarThreadObj->StartRecorderThread();
+#endif
+#ifdef USEOPENCVTHREAD
+  OpenCVThreadObj->StartRecorderThread();
+#endif
+#ifdef USETIEPIETHREAD
+  TiepieThreadObj->StartRecorderThread();
+#endif
+
+
 #ifdef USEOPENCVTHREAD
 	do 
 	{
