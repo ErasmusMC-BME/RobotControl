@@ -65,6 +65,8 @@ public:
 	SharedObjects()
 	{
 			m_CurrentMeasures.set_size( 8 );
+			for (int i=0;i<8;i++)
+				m_CurrentMeasures[i]=0.0;
 	}
 
 	virtual ~SharedObjects()

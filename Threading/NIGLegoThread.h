@@ -112,6 +112,7 @@ public:
 	bool isLegoFound() {return _bLegoFound;}
 
 	virtual void Calibrate();
+	virtual void WaitForRotationIdle();
 
 	void TextMessageSend(std::string message, int inbox);
 	std::string TextMessageRecieve(int mailbox, bool remove);

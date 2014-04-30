@@ -12,10 +12,10 @@
 #include <windows.h>          // for HANDLE
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
-#define USEOPENCVTHREAD
+//#define USEOPENCVTHREAD
 #define USELEGOTHREAD
-#define USETIEPIETHREAD
-#define USETRAKSTARTHREAD
+//#define USETIEPIETHREAD
+//#define USETRAKSTARTHREAD
 //TiePie
 #include "TiePieDLL.h"
 #include "tiepie.h"
@@ -123,14 +123,24 @@ int main()
 	
 	// initialize Lego object
 	LegoThreadObj->Initialize();
-	LegoThreadObj->SetSync(syncTimer);
+	LegoThreadObj->SetSync(syncTimer);	//
 	LegoThreadObj->Calibrate();
+	//LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID;
 	LegoThreadObj->CreateRecorderThread();
-		
-	TrakStarThreadObj->StartRecorderThread();
-	OpenCVThreadObj->StartRecorderThread();
-	TiepieThreadObj->StartRecorderThread();
+#endif	
 
+#ifdef USETRAKSTARTHREAD
+	TrakStarThreadObj->StartRecorderThread();
+#endif
+
+#ifdef USEOPENCVTHREAD
+	OpenCVThreadObj->StartRecorderThread();
+#endif
+#ifdef USETIEPIETHREAD
+	TiepieThreadObj->StartRecorderThread();
+#endif
+
+#ifdef USELEGOTHREAD
 	if(LegoThreadObj->isLegoFound())
 	{
 		LegoThreadObj->StartRecorderThread();
@@ -178,13 +188,26 @@ int main()
 #ifdef USEOPENCVTHREAD
 OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 #endif
+	int val=0;
+do 
+{
 
+	if(LegoThreadObj->isLegoFound())
+	{
+		
+		(*m_CurrentMeasures)[1]=(val)%90;
+		(*m_CurrentMeasures)[2]=(val)%90;
+		(*m_CurrentMeasures)[3]=(val)%5;
+		val +=2;
+		Wait(5000);
+	}
+} while (1);
 
 #ifdef USELEGOTHREAD
 	LegoThreadObj->WaitUntilRecorderThreadIsDone();
 	LegoOut = LegoThreadObj->GetOutput();
 
-
+	Wait(2000);
 	if(LegoThreadObj->isLegoFound())
 	{
 
@@ -196,9 +219,9 @@ OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);// Move motors to 0 Position
+	LegoThreadObj->WaitForRotationIdle();
 
 
-	Wait(1000);
 	double Anglefactor=450/90;
 	double Zfactor=26026/15;
 	double Imagefactor=804/190;
@@ -212,16 +235,17 @@ OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 	LegoThreadObj->WordSend(aa,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motors
-
+	LegoThreadObj->WaitForRotationIdle();
+	
 	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);// Move motors to 0 Position
-
+	LegoThreadObj->WaitForRotationIdle();
 	}
 #endif
 
-	getchar();	
+//	getchar();	
 
 
 	Beep( 750, 300 );
