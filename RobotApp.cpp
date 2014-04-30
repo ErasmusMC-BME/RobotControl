@@ -205,9 +205,9 @@ OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 
 
 	double zz,aa,bb;
-	zz=-1*Zfactor;
-	aa=-45*Anglefactor;
-	bb=-45*Imagefactor;
+	zz=-1*Zfactor;  // corresponds to 1 CM (-7.5.. +7.5)
+	aa=-45*Anglefactor; // corresponds to -45 deg (-90.. +90)
+	bb=-45*Imagefactor; // corresponds to -45 deg  (-90.. +90)
 	LegoThreadObj->WordSend(zz,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(aa,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
