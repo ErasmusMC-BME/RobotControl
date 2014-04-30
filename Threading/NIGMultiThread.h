@@ -29,7 +29,7 @@ private:
 	vnl_vector<double> m_timeCh1;
 	vnl_vector<double> m_CurrentMeasures;
 	/*!
-  	m_CurrentMeasures Current Time (m_CurrentMeasures[0]) , ImageFrameNr (m_CurrentMeasures[1]) and Position (m_CurrentMeasures[2...n]) values
+  	m_CurrentMeasures Current Time (m_CurrentMeasures[0]) ,  Position (m_CurrentMeasures[1...6]) and ImageFrameNr (m_CurrentMeasures[7])  values
 	*/
 
 
@@ -64,7 +64,7 @@ public:
 
 	SharedObjects()
 	{
-			m_CurrentMeasures.set_size( 7 );
+			m_CurrentMeasures.set_size( 8 );
 	}
 
 	virtual ~SharedObjects()

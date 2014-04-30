@@ -122,6 +122,16 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
 			unsigned int status = GetSensorStatus( _sensorID);
 			if( status == VALID_STATUS)
 			{
+				vnl_vector<double> * m_CurrentMeasures=m_InputData->GetCurrentMeasures();
+			  m_CurrentMeasures[0]=currentTime;
+				m_CurrentMeasures[1] = record.x;
+				m_CurrentMeasures[2] = record.y;
+				m_CurrentMeasures[3] = record.z;
+				m_CurrentMeasures[4] = record.a;
+				m_CurrentMeasures[5] = record.e;
+				m_CurrentMeasures[6] = record.r;
+
+
 				_measures[idxMeasure][0] = currentTime;
 				_measures[idxMeasure][1] = record.x;
 				_measures[idxMeasure][2] = record.y;

@@ -52,9 +52,10 @@ ImageType::Pointer itkImageFromBuffer( IplImage* opencvIO, void* buffer, size_t 
 template  <class Tin,class Tout>  void  OpenCVThread<Tin,Tout>::Initialize(const char *fmt, ...)
 {
 	thread<Tin,Tout>::Initialize( );
-	
-	m_OutputData = new Tout;
 
+	m_OutputData = new Tout;
+	vnl_vector<double> * m_CurrentMeasures=m_InputData->GetCurrentMeasures();
+	m_CurrentMeasures[7]=_ActualFrameNr;
 	_bOpenCVFound=false;
 	unsigned int recordLength_Video=_numSamples;	
 
@@ -146,6 +147,8 @@ unsigned int recordLength_Video=_numSamples;
 
 			_VideoImage[_ActualFrameNr]->SetInputImage(cameraFrame);    
 			_VideoImage[_ActualFrameNr]->Update();  
+			vnl_vector<double> * m_CurrentMeasures=m_InputData->GetCurrentMeasures();
+			m_CurrentMeasures[7]=_ActualFrameNr;
 
 			//ImageType::Pointer clonedImage = PlaneImage[Index]->GetModifiableOutput();
 
