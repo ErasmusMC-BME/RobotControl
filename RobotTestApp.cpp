@@ -1,7 +1,11 @@
 // NXT++ test.cpp : Defines the entry point for the console application.
 //
 //LEGO 
-
+//#define USEOPENCVTHREAD
+//#define USELEGOTHREAD
+//#define USETIEPIETHREAD
+//#define USETRAKSTARTHREAD
+//TiePie
 #include "Timer.h"
 
 #include <iostream>
@@ -54,7 +58,11 @@ template <class Tin,class Tout>  thread<Tin,Tout> *  thread<Tin,Tout>::m_thread=
 
 int main()
 {
+
+
+
 	// user variables
+	utility<double> helper;
 	double acquisitionTime = 30; // (sec)
 	std::string acquisitionTag = "010";
 	//std::string dataPath = "D:/Data/ExperimentalData/CalibrationThreeWirePhantom/InitExperiment_19-Jan-2014/";
@@ -67,95 +75,142 @@ int main()
 	// create sharedobjs object
 	SharedObjects * sharedobjs = new SharedObjects(); 
 
+	vnl_vector<double> * m_CurrentMeasures=sharedobjs->GetCurrentMeasures();
+
 	// create sync  object	and start timer;
 	SyncTimerObject * syncTimer = new SyncTimerObject();
 	syncTimer->start();	
+
+	Comm::NXTComm comm;
+  bool _bLegoFound;
+	bool bValue =true;
+	if(NXT::Open(&comm)) //initialize the NXT and continue if it succeeds
+	{
+		
+		std::string name="receiverFromPC1\n";
+		_bLegoFound=true;
+		NXT::StartProgram(&comm,name);
+		std::cout << "NXT Connection made with USB " << std::endl;
 	
+	}
+	else
+	{
+		if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
+		{
+			std::string name="receiverFromPC1\n";
+			_bLegoFound=true;
+			NXT::StartProgram(&comm,name);
+			std::cout << "NXT Connection made with BT" << std::endl;
+		
+		}
+
+		_bLegoFound = false;
+		std::cout << "NXT connection failed" << std::endl;
+
+	
+	}
+
+
+
+	if(_bLegoFound)
+	{
+
+	//	 NXT::Motor::GetRotationCount(&comm, 0);
+		int inbox=MAILBOX_RESET;
+		int Value=4;
+		//ViInt8 responseBuffer[] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+		ViUInt8 directCommandBuffer[] = { 0x13,17, 7, true };
+	//	ViUInt8 directCommandBuffer[] = {0x09, 5,2,1};
+		ViUInt8 responseBuffer[] = {2,2,2,2,2,2};
+
+
+
+
+	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+			reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+
+	for(int j = 0; j <  sizeof( responseBuffer ); j++)
+		std::cout << (int)responseBuffer[j] << "\n";
+	std::cout << (char *)responseBuffer[4] << "\n";
+	ViUInt8 directCommandBuffer1[] = { 0x13,18, 8, true };
+	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer1 ), sizeof( directCommandBuffer1 ),
+		reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+
+		   //  responseBuffer[j] =1;
+
+
+	/*	
+	Byte O: OxOO or OxBO 
+	Byte 1: Ox13 
+	Byte 2: Remote lnbox number  (O - 9) 
+	Byte 3: Local lnbox number (O - 9) 
+	Byte 4: Remove? (Boolean; TRUE (non-zero) value clears message from Remote lnbox)  
+
+	Return package:  
+	Byte O: OxO2        
+	Byte 1: Ox13 
+	Byte 2: Status Byte 
+	Byte 3: Local lnbox number  (O - 9)
+	Byte 4: Message size 
+	Byte 5 - 63: Message data (padded) 
+	*/
+
+
+		ViUInt8* directBoolCommandBuffer = NULL;
+		directBoolCommandBuffer  = new ViUInt8[5];
+		directBoolCommandBuffer[0] = 0x09;
+		directBoolCommandBuffer[1] = inbox-1; // Mailbox number -1 (e.g. for mailbox 1 use Ox00 
+		directBoolCommandBuffer[2] = 2; // this is the datalength: 1 byte + a 1 byte terminator 
+		directBoolCommandBuffer[3] = bValue;
+		directBoolCommandBuffer[4] = NULL;// terminator
+	
+	//	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directBoolCommandBuffer ),5,NULL,0);
+	
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directBoolCommandBuffer ), 5,reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+	//	for(int j = 0; j <  sizeof( responseBuffer ); j++)
+		//	std::cout << (int)responseBuffer[j] << "\n";
+
+		ViUInt8 directCommandBufferGetStatus[] = { 0x0E, 0};
+		ViUInt8 directCommandBufferLsRead[] = { 0x10, 0};
+		ViUInt8 directCommandBufferLsWrite[] = { 0x0F, 0,0x02, 0x01, 0x02, 0x42 };
+
+
+		// Send the direct command to the NXT.
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBufferGetStatus ), sizeof( directCommandBufferGetStatus ),
+			reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBufferLsWrite ), sizeof( directCommandBufferLsWrite ),
+			reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBufferLsRead ), sizeof( directCommandBufferLsRead ),
+			reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+		for(int j = 0; j <  sizeof( responseBuffer ); j++)
+			std::cout << (int)responseBuffer[j] << "\n";
+
+
+	
+
+			Value=4;
+
+		}
+
+
 	// create threads 	
-	
+#ifdef USETRAKSTARTHREAD
 
 	// create TraKStar object
 	TrakstarObjects * TrakstarOut;
 	TrakstarThread<SharedObjects,TrakstarObjects> *TrakStarThreadObj;
 	TrakStarThreadObj=TrakstarThread<SharedObjects,TrakstarObjects>::New(); //Create thread
 	TrakStarThreadObj->SetInput(sharedobjs);
-#if 0
+
 	// initialize TraKStar object
 	double df_TrakStar = 80; // (Hz)
 	int recordLength_TrakStar = ceil( df_TrakStar * acquisitionTime );
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
 	TrakStarThreadObj->SetSync(syncTimer);
-	TrakStarThreadObj->Update(); // nothing yet (not sure if we use)
 	TrakStarThreadObj->CreateRecorderThread();
-	TrakStarThreadObj->StartRecorderThread();
-	// wait for the measurement threads to finish
-	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
-	// retrieve and save data
-	TrakstarOut = TrakStarThreadObj->GetOutput();
-	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
-
 #endif
-//	utility<double> helper;
-	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
-	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
-//	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
-//
 
-
-
-	// create Lego object
-	bool bValue=true;
-	LegoThread<SharedObjects,LegoObjects> * self= new  LegoThread<SharedObjects,LegoObjects>();
-	LegoObjects * LegoOut;
-	LegoThread<SharedObjects,LegoObjects> *LegoThreadObj;
-	LegoThreadObj=LegoThread<SharedObjects,LegoObjects>::New(); //Create thread
-
-	
-	LegoThreadObj->SetInput(sharedobjs);
-	LegoThreadObj->Initialize();
-
-	LegoThreadObj->SetSync(syncTimer);
-	//LegoThreadObj->BoolSend(bValue,MAILBOX_INIT);//init PID;
-	if(LegoThreadObj->isLegoFound())
-	{
-
-
-
-//	Wait(5000);
-	LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID;
-	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
-	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
-	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
-	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motor
-
-
-	Wait(1000);
-	double Anglefactor=450/90;
-	double Zfactor=26026/15;
-	double Imagefactor=804/190;
-
-
-	double zz,aa,bb;
-	zz=-1*Zfactor;
-	aa=-45*Anglefactor;
-	bb=-45*Imagefactor;
-	LegoThreadObj->WordSend(zz,MAILBOX_A);//Z Plane + <---> -
-	LegoThreadObj->WordSend(aa,MAILBOX_B);//Angle 0 <---> -
-	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
-	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motor
-
-	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
-	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
-	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
-	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motor
-	Wait(3000);	
-	LegoThreadObj->TextMessageRecieve(7,false);
-	LegoThreadObj->TextMessageRecieve(MAILBOX_RECIEVE,false);
-	LegoThreadObj->TextMessageRecieve(9,false);
-	Wait(2000);
-	//LegoThreadObj->TextMessageRecieve(MAILBOX_RECIEVE,true);
-	}
-
+#ifdef USETIEPIETHREAD
 	// create Tiepie object
 	TiepieObjects * TiepieOut;
 	TiepieThread<SharedObjects,TiepieObjects> *TiepieThreadObj;
@@ -168,35 +223,67 @@ int main()
 	dword recordLength_Tiepie = (dword) ceil( df_Tiepie * acquisitionTime );
 	TiepieThreadObj->Initialize("Wdd",  recordLength_Tiepie, sensCh1_Tiepie, df_Tiepie  );
 	TiepieThreadObj->SetSync(syncTimer);
-	TiepieThreadObj->TestCalibrationDate();
-	
 	TiepieThreadObj->CreateRecorderThread();
-	TiepieThreadObj->StartRecorderThread();
-	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
-	TiepieThreadObj->GetOutput();
-	
-	
-	
-	LegoThreadObj->CreateRecorderThread();
-	LegoThreadObj->StartRecorderThread();
-	LegoThreadObj->WaitUntilRecorderThreadIsDone();
-	LegoOut = LegoThreadObj->GetOutput();
+#endif
 
-
-
-
-
-#if 0
+#ifdef USEOPENCVTHREAD
+	// create OpenCV object
 	OpenCVObjects * VideoOut;
 	OpenCVThread<SharedObjects,OpenCVObjects> *OpenCVThreadObj;
 	OpenCVThreadObj=OpenCVThread<SharedObjects,OpenCVObjects>::New(); //Create thread
 	OpenCVThreadObj->SetInput(sharedobjs);
+
+	// initialize OpenCV object
 	OpenCVThreadObj->Initialize();
 	OpenCVThreadObj->SetSync(syncTimer);
-	OpenCVThreadObj->Update();
 	OpenCVThreadObj->CreateRecorderThread();
-	OpenCVThreadObj->StartRecorderThread();
+#endif
 
+
+
+#ifdef USELEGOTHREAD
+	// create Lego object
+	LegoObjects * LegoOut;
+	LegoThread<SharedObjects,LegoObjects> *LegoThreadObj;
+	LegoThreadObj=LegoThread<SharedObjects,LegoObjects>::New(); //Create thread
+	LegoThreadObj->SetInput(sharedobjs);
+
+	// initialize Lego object
+	LegoThreadObj->Initialize();
+	LegoThreadObj->SetSync(syncTimer);	//
+	//	LegoThreadObj->Calibrate();
+	if(LegoThreadObj->isLegoFound())
+	{
+		LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID; start PID without Calibration, reset motor position values
+		LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
+		LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
+		LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
+
+		LegoThreadObj->CreateRecorderThread();
+
+
+	}
+#endif	
+
+#ifdef USETRAKSTARTHREAD
+	TrakStarThreadObj->StartRecorderThread();
+#endif
+
+#ifdef USEOPENCVTHREAD
+	OpenCVThreadObj->StartRecorderThread();
+#endif
+#ifdef USETIEPIETHREAD
+	TiepieThreadObj->StartRecorderThread();
+#endif
+
+#ifdef USELEGOTHREAD
+	if(LegoThreadObj->isLegoFound())
+	{
+		//LegoThreadObj->StartRecorderThread();
+	}
+
+#endif
+#ifdef USEOPENCVTHREAD
 	do 
 	{
 		if( OpenCVThreadObj->isOpenCVFound())
@@ -213,36 +300,50 @@ int main()
 			writer->Update();
 			utility<double> helper;
 			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
-
-
 		}
 	} while (1);
-	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
-
-
-	getchar();	
-
-	//utility<double> helper;
-	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieThreadObj->GetTimeCh1(), "TiePieTime" + acquisitionTag );
-	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieThreadObj->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
-	//TrakstarObjects * Out;
-
-	// start threads
-	TiepieThreadObj->StartRecorderThread();
-	TrakStarThreadObj->StartRecorderThread();
-
+#endif
 	// wait for the measurement threads to finish
-	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
+
+
+#ifdef USETRAKSTARTHREAD
 	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
-	
-
 	// retrieve and save data
-	TiepieOut = TiepieThreadObj->GetOutput();
 	TrakstarOut = TrakStarThreadObj->GetOutput();
+	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
+	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
+#endif
+
+#ifdef USETIEPIETHREAD
+	TiepieThreadObj->WaitUntilRecorderThreadIsDone();
+	//helper.matlabSaveVnlVector( dataPath + "TiePieTime" + acquisitionTag + ".mat", TiepieOut->GetTimeCh1(), "TiePieTime" + acquisitionTag );
+	//helper.matlabSaveVnlVector( dataPath + "TiePieVoltage" + acquisitionTag  +  ".mat", TiepieOut->GetVoltageCh1(), "TiePieVoltage" + acquisitionTag );
+#endif
 
 
+#ifdef USEOPENCVTHREAD
+	OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
+#endif
+	int val=0;
+#ifdef USELEGOTHREAD
+	do 
+	{
+
+		if(LegoThreadObj->isLegoFound())
+		{
+
+			//	(*m_CurrentMeasures)[1]=(val)%90;
+			(*m_CurrentMeasures)[2]=(val)%90;
+			//	(*m_CurrentMeasures)[3]=(val)%5;
+			val +=2;
+			Wait(5000);
+		}
+	} while (1);
+#endif
+#if 0
 
 	getchar();	
+
 	
 //	if( VideoThreadObj->isVideoTFound())
 	{
