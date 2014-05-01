@@ -198,9 +198,16 @@ int main()
 #ifdef USEOPENCVTHREAD
 OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 #endif
+<<<<<<< HEAD
 
 #ifdef USELEGOTHREAD
 int val=0;
+=======
+	int val=0;
+
+
+#ifdef USELEGOTHREAD
+>>>>>>> a99ee2e275a09e88005f5e8351b05d416c924b43
 do 
 {
 
@@ -214,6 +221,7 @@ do
 		Wait(5000);
 	}
 } while (1);
+#endif
 
 
 LegoThreadObj->WaitUntilRecorderThreadIsDone();
