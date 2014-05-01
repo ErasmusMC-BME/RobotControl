@@ -124,9 +124,16 @@ int main()
 	// initialize Lego object
 	LegoThreadObj->Initialize();
 	LegoThreadObj->SetSync(syncTimer);	//
-	LegoThreadObj->Calibrate();
-	//LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID;
-	LegoThreadObj->CreateRecorderThread();
+//	LegoThreadObj->Calibrate();
+	if(LegoThreadObj->isLegoFound())
+	{
+		LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID; start PID without Calibration, reset motor position values
+		LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
+		LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
+		LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
+
+		LegoThreadObj->CreateRecorderThread();
+	}
 #endif	
 
 #ifdef USETRAKSTARTHREAD
@@ -195,9 +202,9 @@ do
 	if(LegoThreadObj->isLegoFound())
 	{
 		
-		(*m_CurrentMeasures)[1]=(val)%90;
+	//	(*m_CurrentMeasures)[1]=(val)%90;
 		(*m_CurrentMeasures)[2]=(val)%90;
-		(*m_CurrentMeasures)[3]=(val)%5;
+	//	(*m_CurrentMeasures)[3]=(val)%5;
 		val +=2;
 		Wait(5000);
 	}

@@ -28,7 +28,7 @@ template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const c
 	bool bValue =true;
 	if(NXT::Open(&comm)) //initialize the NXT and continue if it succeeds
 	{
-		std::string name="receiverFromPC\n";
+		std::string name="receiverFromPC1\n";
 		_bLegoFound=true;
 		NXT::StartProgram(&comm,name);
 		std::cout << "NXT Connection made with USB " << std::endl;
@@ -82,6 +82,7 @@ template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( v
 				WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
 				BoolSend(bValue,MAILBOX_START);//Start Motors
 				WaitForRotationIdle();
+			//	TextMessageRecieve(MAILBOX_RECIEVE,false);
 
 
  	} while (1);
@@ -169,6 +170,7 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::TextMessageSend(std:
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WordSend(int Value, int inbox)
 {
 	ViUInt8* directLongCommandBuffer = NULL;
+//	ViUInt8 responseBuffer[64];
 	directLongCommandBuffer  = new ViUInt8[8];
 	directLongCommandBuffer[0] = 0x09;
 	directLongCommandBuffer[1] = inbox-1; // Mailbox number -1 (e.g. for mailbox 1 use Ox00 
@@ -178,7 +180,11 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WordSend(int Value, 
 	directLongCommandBuffer[5] = LOUPPERBYTE(Value);
 	directLongCommandBuffer[6] = HIUPPERBYTE(Value);// the MSB 
 	directLongCommandBuffer[7] = NULL;	// terminator
+	//comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directLongCommandBuffer ), 8,reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
 	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directLongCommandBuffer ), 8,NULL,0);
+	//for(int j = 0; j <  sizeof( responseBuffer )/8; j++)
+	//	std::cout << (int)responseBuffer[j] << "\n";
+
 
 }
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::BoolSend(bool bValue, int inbox)
@@ -197,7 +203,7 @@ template  <class Tin,class Tout> std::string LegoThread<Tin,Tout>::TextMessageRe
 {
 //BYTE loByte = 17;
 //BYTE hiByte = 45;
-	ViUInt8 directCommandBuffer[] = { 0x13, mailbox+9, 0x00, remove };
+	ViUInt8 directCommandBuffer[] = { 0x13, mailbox-1, mailbox-1, remove };
 	ViUInt8 responseBuffer[64];
 	for(int i = 0; i < 64; i++)
 		responseBuffer[i] = 0x00;
