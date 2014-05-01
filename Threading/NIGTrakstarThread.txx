@@ -8,7 +8,7 @@ template  <class Tin,class Tout>  TrakstarThread<Tin,Tout>::TrakstarThread( void
 	_bTrakstarReady = false;
 	_numSamples = 10;
 	_samplingFreq = 80;
-	_sensorID = 0;
+	//_sensorID = 0;
 	_transmitterID = 0;
 
 }
@@ -30,28 +30,24 @@ template <class Tin,class Tout>  TrakstarThread<Tin,Tout> *  TrakstarThread<Tin,
 
 template  <class Tin,class Tout>  void  TrakstarThread<Tin,Tout>::Initialize(const char *fmt, ...)
 {
+  /*!
+  Initialization of the TrakStar system. 
+  */
 	va_list args;
 	va_start(args, fmt);
+  _numSamples = va_arg( args, int );
+  _samplingFreq = va_arg( args, double );
+  va_end(args);
+	
+  std::cout << "Initializing TrakStar with " << _numSamples << " samples, and " << _samplingFreq << " Hz sampling frequency" << std::endl;
 
-	while (*fmt != '\0') {
-		if (*fmt == 'd') {
-			int i = va_arg(args, int);
-			std::cout << i << '\n';
-		} else if (*fmt == 's') {
-			char * s = va_arg(args, char*);
-			std::cout << s << '\n';
-		}
-		++fmt;
-	}
-	va_end(args);
-	thread<Tin,Tout>::Initialize( );
-
+  // start initialization
 	m_OutputData = new Tout;
-
-	int				errorCode;		// used to hold error code returned from procedure call
+  int				errorCode;		// used to hold error code returned from procedure call
 
 	// Initialize the ATC3DG driver and DLL
 	errorCode = InitializeBIRDSystem();
+  errorCode = GetBIRDSystemConfiguration(&_ATC3DG.m_config);
 	if(errorCode==BIRD_ERROR_SUCCESS) 
 	{		
 		_bTrakstarFound = true;
@@ -63,12 +59,30 @@ template  <class Tin,class Tout>  void  TrakstarThread<Tin,Tout>::Initialize(con
 		//PrintSystemParamters();
 
 		// set up sensor
-		_sensorID = 0;		
-		//PrintSensorParameters( _sensorID );
-		// set up transmitter
+		_pSensor = new CSensor[_ATC3DG.m_config.numberSensors];
+    for( int i = 0 ; i < _ATC3DG.m_config.numberSensors; i++ )
+	  {
+		  errorCode = GetSensorConfiguration(i, &(_pSensor)->m_config);
+      if(errorCode == BIRD_ERROR_SUCCESS)
+      {
+        BOOL sensorAttached = _pSensor->m_config.attached;
+        if ( sensorAttached )
+        {
+          std::cout <<  "RX with id " << i << " with serial number "<< (ULONG) _pSensor->m_config.serialNumber << " is connected." << std::endl;
+          _sensorID.push_back( i );
+        }
+      }
+      else
+      {
+		    errorHandler(errorCode);
+      }
+        
+	  }
+		
+    // set up transmitter
 		_transmitterID = 0;
-		//PrintTransmitterParameters( _transmitterID );
-		std::cout  << "TrakStar initialization done." << std::endl;
+		
+		std::cout  << "TrakStar initialization finished." << std::endl;
 		_bTrakstarReady = true;
 	}
 	else
@@ -104,56 +118,67 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
 		// measure position and angle
 		DOUBLE_POSITION_ANGLES_RECORD record, *pRecord = &record;
 		double currentTime;
-		std::cout << "Start Time TrakStar: " << m_timer->getElapsedTimeInSec() << std::endl;
-		// m_sharedobjs->StartTiepieSync() ;
-		// m_sharedobjs->StopTiepieSync();
-		std::cout << "Start Time TrakStar: " << m_timer->getElapsedTimeInSec() << std::endl;
-		_measures.set_size( _numSamples, 7 );
+		std::cout << "TrakStar started recording at: " << m_timer->getElapsedTimeInSec() << " sec." << std::endl;
+		
+    // prepare the vector containing the measurements
+    vnl_matrix<double> currentMeasures( _numSamples, 7, -1.0 );
+    for ( int sensorItr = 0; sensorItr < _sensorID.size(); sensorItr++ )
+    {
+      _measures.push_back( currentMeasures );
+    }
 
+    
 		for (int idxMeasure = 0; idxMeasure < _numSamples; ++idxMeasure) // change name to possibly idxSlot
 		{
-			/* measure position */
-			errorCode = GetAsynchronousRecord(_sensorID, pRecord, sizeof(record));
-			currentTime = m_timer->getElapsedTimeInSec();
+      for ( int sensorItr = 0; sensorItr < _sensorID.size(); sensorItr++ )
+      {
+        /* measure position */
+			  errorCode = GetAsynchronousRecord(_sensorID[sensorItr], pRecord, sizeof(record));
+			  currentTime = m_timer->getElapsedTimeInSec();
 
-			if(errorCode!=BIRD_ERROR_SUCCESS) {errorHandler(errorCode);}
+			  if(errorCode!=BIRD_ERROR_SUCCESS) {errorHandler(errorCode);}
 
-			// get the status of the last data record
-			// only report the data if everything is okay
-			unsigned int status = GetSensorStatus( _sensorID);
-			if( status == VALID_STATUS)
-			{
-				vnl_vector<double> * m_CurrentMeasures=m_InputData->GetCurrentMeasures();
-			  (*m_CurrentMeasures)[0]=currentTime;
-				(*m_CurrentMeasures)[1] = record.x;
-				(*m_CurrentMeasures)[2] = record.y;
-				(*m_CurrentMeasures)[3] = record.z;
-				(*m_CurrentMeasures)[4] = record.a;
-				(*m_CurrentMeasures)[5] = record.e;
-				(*m_CurrentMeasures)[6] = record.r;
+			  // get the status of the last data record
+			  // only report the data if everything is okay
+			  unsigned int status = GetSensorStatus( _sensorID[sensorItr]);
+			  if( status == VALID_STATUS)
+			  {
+          currentMeasures = _measures[sensorItr]; // get data out of measure vector
 
+          // need to change that  for multi sensor measurements (Alex 01-May)
+				  vnl_vector<double> * m_CurrentMeasures = m_InputData->GetCurrentMeasures();
+			    (*m_CurrentMeasures)[0] = currentTime;
+				  (*m_CurrentMeasures)[1] = record.x;
+				  (*m_CurrentMeasures)[2] = record.y;
+				  (*m_CurrentMeasures)[3] = record.z;
+				  (*m_CurrentMeasures)[4] = record.a;
+				  (*m_CurrentMeasures)[5] = record.e;
+				  (*m_CurrentMeasures)[6] = record.r;
+          // END  need to change that  for multi sensor measurements (Alex 01-May)
 
-				_measures[idxMeasure][0] = currentTime;
-				_measures[idxMeasure][1] = record.x;
-				_measures[idxMeasure][2] = record.y;
-				_measures[idxMeasure][3] = record.z;
-				_measures[idxMeasure][4] = record.a;
-				_measures[idxMeasure][5] = record.e;
-				_measures[idxMeasure][6] = record.r;
+				  currentMeasures[idxMeasure][0] = currentTime;
+				  currentMeasures[idxMeasure][1] = record.x;
+				  currentMeasures[idxMeasure][2] = record.y;
+				  currentMeasures[idxMeasure][3] = record.z;
+				  currentMeasures[idxMeasure][4] = record.a;
+				  currentMeasures[idxMeasure][5] = record.e;
+				  currentMeasures[idxMeasure][6] = record.r;
+          
+          // update measurements vector
+          _measures[sensorItr] = currentMeasures;
 
-				/* std::cout << std::fixed << idxMeasure << '\t' << record.x << '\t' << record.y << '\t' 
-				<< record.z << '\t' << record.a << '\t' 
-				<< record.e << '\t' << record.r << '\t' << std::endl;*/
-				// wait until 1/80 Hz period is over
-				while ( m_timer->getElapsedTimeInSec() - currentTime < 1.0/_samplingFreq )
-				{
-				}
-			}
-			else
-			{
-				//std::cout << "Sensor status not valid." << std::endl;
-			}
-
+          // wait at least half a sampling period of the TrakStar system
+          // The wait time is a bit arbritary. Should change to Synchronous record (Alex 01-May)
+				  while ( m_timer->getElapsedTimeInSec() - currentTime < 0.5/_samplingFreq )
+				  {
+				  }
+          // END The wait time is a bit arbritary. Should change to Synchronous record (Alex 01-May)
+			  }
+			  else
+			  {
+				  std::cout << "Sensor status not valid." << std::endl;
+			  }
+      }
 		}
 		m_OutputData->TrakstarObjects::SetMeasures(_measures);
 		SET_SYSTEM_PARAMETER(SELECT_TRANSMITTER,	-1);

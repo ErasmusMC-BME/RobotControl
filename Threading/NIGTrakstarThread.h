@@ -51,7 +51,8 @@ class SharedObjects;
 class TrakstarObjects
 {
 private:
-	vnl_matrix<double> _measures;
+	std::vector<vnl_matrix<double>> _measures;
+  
 
 public:
 
@@ -61,21 +62,21 @@ public:
 	 * Remarks
 	 *
 	 */
-	
+  void SetMeasures(std::vector<vnl_matrix<double>> var )
+  {
+    _measures = var;
+  }
 	/*!
 	 * \brief  Sets  
 	 *
 	 * Remarks
 	 *
 	 */
-	vnl_matrix<double>  GetMeasures()
+	std::vector<vnl_matrix<double>>  GetMeasures()
 	{
 		return _measures;
 	}
-	void SetMeasures(vnl_matrix<double> measures )
-	{
-		_measures=measures;
-	}
+	
 
 
 
@@ -98,11 +99,14 @@ private:
 	bool _bTrakstarReady;
 	int _numSamples;
 	double _samplingFreq;
-	vnl_matrix<double> _measures;
+	std::vector<vnl_matrix<double>> _measures;
 
-	int _sensorID;
+	std::vector<int> _sensorID;
 	int _transmitterID;
 	int errorCode;
+
+  CSensor			*_pSensor;
+  CSystem			_ATC3DG;
 
 	static TrakstarThread *m_Trakstarthread;
 public:

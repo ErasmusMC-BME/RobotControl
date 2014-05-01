@@ -13,9 +13,9 @@
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
 //#define USEOPENCVTHREAD
-#define USELEGOTHREAD
+//#define USELEGOTHREAD
 //#define USETIEPIETHREAD
-//#define USETRAKSTARTHREAD
+#define USETRAKSTARTHREAD
 //TiePie
 #include "TiePieDLL.h"
 #include "tiepie.h"
@@ -181,8 +181,11 @@ int main()
 	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
 	// retrieve and save data
 	TrakstarOut = TrakStarThreadObj->GetOutput();
-	vnl_matrix<double> _measures= TrakstarOut->GetMeasures();
-	helper.matlabSaveVnlMatrix( dataPath + "TrakStarData" + acquisitionTag + ".mat", TrakstarOut->GetMeasures(), "TrakStarData" + acquisitionTag );
+	std::vector<vnl_matrix<double>> positionMeasurements = TrakstarOut->GetMeasures();
+  
+  // change the data saving into something more generic (Alex 01-May)
+	helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
+  helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
 #endif
 
 #ifdef USETIEPIETHREAD
@@ -195,30 +198,32 @@ int main()
 #ifdef USEOPENCVTHREAD
 OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 #endif
-	int val=0;
+
+#ifdef USELEGOTHREAD
+int val=0;
 do 
 {
 
 	if(LegoThreadObj->isLegoFound())
 	{
-		
-	//	(*m_CurrentMeasures)[1]=(val)%90;
+
+		//	(*m_CurrentMeasures)[1]=(val)%90;
 		(*m_CurrentMeasures)[2]=(val)%90;
-	//	(*m_CurrentMeasures)[3]=(val)%5;
+		//	(*m_CurrentMeasures)[3]=(val)%5;
 		val +=2;
 		Wait(5000);
 	}
 } while (1);
 
-#ifdef USELEGOTHREAD
-	LegoThreadObj->WaitUntilRecorderThreadIsDone();
-	LegoOut = LegoThreadObj->GetOutput();
 
-	Wait(2000);
-	if(LegoThreadObj->isLegoFound())
-	{
+LegoThreadObj->WaitUntilRecorderThreadIsDone();
+LegoOut = LegoThreadObj->GetOutput();
 
-		// should be done in a thread
+Wait(2000);
+if(LegoThreadObj->isLegoFound())
+{
+
+	// should be done in a thread
 
 	//LegoThreadObj->BoolSend(bValue,MAILBOX_INIT);//init PID + Calibration steps ;
 	LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID;
@@ -243,20 +248,15 @@ do
 	LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motors
 	LegoThreadObj->WaitForRotationIdle();
-	
+
 	LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
 	LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
 	LegoThreadObj->BoolSend(bValue,MAILBOX_START);// Move motors to 0 Position
 	LegoThreadObj->WaitForRotationIdle();
-	}
+}
+Beep( 750, 300 );
 #endif
-
-//	getchar();	
-
-
-	Beep( 750, 300 );
-	//getchar();	
 	return 0;
 }
 
