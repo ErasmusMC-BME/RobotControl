@@ -72,6 +72,8 @@ SET( RobotBaseFiles
 	$ENV{NIG_COMMON_DIR}/utility.h
 	$ENV{NIG_COMMON_DIR}/../thread//Thread.h
 	Threading/NIGMultiThread.h
+	Threading/NIGReconstructionThread.txx
+	Threading/NIGReconstructionThread.h
 	Threading/NIGTiepieThread.txx
 	Threading/NIGTiepieThread.h
 	Threading/NIGLegoThread.txx

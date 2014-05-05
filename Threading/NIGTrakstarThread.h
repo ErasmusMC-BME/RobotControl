@@ -3,25 +3,6 @@
 #ifndef TrakstarThread_H
 #define TrakstarThread_H
 
-#include <iostream>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
-
-#include <sys/stat.h>
-#include <windows.h>
-#include <time.h>
-#include <snmp.h>
-#include <conio.h>
-#include <stdio.h>
-#include "winsock.h"
-#include <math.h>
-
-#include <vector>
-#include <string>
-#include <map>
-#include <list>
-#include <vector>
 #include <process.h>    /* CreateRecorderThread, _endthread */
 #define MAX_THREADS 1
 #include "Timer.h"

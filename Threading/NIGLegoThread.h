@@ -6,28 +6,7 @@
 //#include "NXT++.h"
 #ifndef LegoThread_H
 #define LegoThread_H
-#if 0
-#include <iostream>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
 
-#include <sys/stat.h>
-#include <windows.h>
-#include <time.h>
-#include <snmp.h>
-#include <conio.h>
-#include <stdio.h>
-#include "winsock.h"
-#include <math.h>
-
-#include <vector>
-#include <string>
-#include <map>
-#include <list>
-#include <vector>
-#include <process.h>    /* CreateRecorderThread, _endthread */
-#endif
 #include "NXT++.h"
 #include "Timer.h"
 #include "NIGMultiThread.h"
@@ -86,7 +65,6 @@ template  <class Tin,class Tout>  class LegoThread:public thread<Tin,Tout>
 
 private:
 	SharedObjects* m_sharedobjs;
-	Timer *m_timer;
 	bool _bLegoFound;
 	bool _bLegoReady;
 	static LegoThread *m_Legothread;
@@ -99,12 +77,14 @@ public:
 	// Test for Gerard
 	LegoThread* LegoThread::NewLC()
 	{
-	LegoThread * self= new  LegoThread();
-	//CleanupStack::PushL(self);
-	//self->ConstructL();
-	return self;
+		LegoThread * self= new  LegoThread();
+		//CleanupStack::PushL(self);
+		//self->ConstructL();
+		return self;
 	}
-	//End Test for Gerard
+	int LSGetStatus(int port);
+	int GetRotationCount(int port);
+	// End  Testcode Gerard
 
 	virtual void Initialize(const char *fmt=NULL, ...);
 
@@ -113,14 +93,14 @@ public:
 
 	virtual void Calibrate();
 	virtual void WaitForRotationIdle();
-
+	virtual void WaitForNxtDone(bool bFlag);
+	void Close();
 	void TextMessageSend(std::string message, int inbox);
 	std::string TextMessageRecieve(int mailbox, bool remove);
 	void WordSend(int Value, int inbox);
 	int WordRecieve(int mailbox, bool remove);
 	void BoolSend(bool Value, int inbox);
 	bool BoolRecieve(int mailbox, bool remove);
-
 private:
 };
 

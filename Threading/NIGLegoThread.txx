@@ -12,8 +12,12 @@ template  <class Tin,class Tout>  LegoThread<Tin,Tout>::LegoThread( void )
 
 template  <class Tin,class Tout>  LegoThread<Tin,Tout>::~LegoThread( void )
 {
+	comm.Close();
 }
-
+template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::Close( void )
+{
+	comm.Close();
+}
 template <class Tin,class Tout>  LegoThread<Tin,Tout> *  LegoThread<Tin,Tout>::New( thread<Tin,Tout> * _thread=NULL )  // Create the object
 {
 	if(m_Legothread==NULL)
@@ -38,7 +42,7 @@ template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const c
 	{
 		if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 		{
-			std::string name="receiverFromPC1\n";
+			std::string name="receiverFromPC1";
 			_bLegoFound=true;
 			NXT::StartProgram(&comm,name);
 			std::cout << "NXT Connection made with BT" << std::endl;
@@ -77,11 +81,13 @@ template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( v
 				zz=record.z*Zfactor;  // corresponds to 1 CM (-7.5.. +7.5)
 				aa=record.y*Anglefactor; // corresponds to -45 deg (-90.. +90)
 				bb=record.x*Imagefactor; // corresponds to -45 deg  (-90.. +90)
+				WaitForNxtDone(true); //empty buffer
 				WordSend(zz,MAILBOX_A);//Z Plane + <---> -
 				WordSend(aa,MAILBOX_B);//Angle 0 <---> -
 				WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
 				BoolSend(bValue,MAILBOX_START);//Start Motors
-				WaitForRotationIdle();
+				WaitForNxtDone(false);
+			//	WaitForRotationIdle();
 			//	TextMessageRecieve(MAILBOX_RECIEVE,false);
 
 
@@ -90,6 +96,23 @@ template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( v
 }
 
 
+// not in yet !!! have to test for timeout
+template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WaitForNxtDone(bool bFlag)
+{
+	if(bFlag)  // clear buffer, use before sending rotation command to be shure no message is pending
+	{
+		do 
+		{
+		} while (BoolRecieve(9,true)); //messagebox 9 trou to clear message after reading
+	}
+	else
+	{
+		do 
+		{
+		} while (!BoolRecieve(9,true));
+	}
+
+}
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WaitForRotationIdle()
 { 
 	// workaround the wait until done test 
@@ -130,25 +153,52 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Calibrate()
 {  
 	bool bValue=true;
 	if(isLegoFound())
-	{
-		BoolSend(bValue,MAILBOX_INIT);//init PID;
+	{   
+		WaitForNxtDone(true);
+		BoolSend(bValue,MAILBOX_INIT);//init PID; calibrate motors
 		WordSend(0,MAILBOX_A);//Z Plane + <---> -
 		WordSend(0,MAILBOX_B);//Angle 0 <---> -
 		WordSend(0,MAILBOX_C);//Image Plane  + <---> -
 		BoolSend(bValue,MAILBOX_START);//Start Motor
-		WaitForRotationIdle();
+		WaitForNxtDone(false);
 	}
 }
 
 
 
 
+
+/*
+MESSAGEWRITE
+Byte 0: 0x00  or 0x80
+Byte 1: 0x09
+Byte 2: Inbox number (0 - 9) 
+Byte 3: Message  size
+Byte 4 - N: Message  data, where N = Message  size + 3
+
+Message  data is treated as a string; it must include null termination to be accepted.  
+Accordingly, message size must include the null termination byte. 
+Message  size must be capped at 59 for all message packets to be legal  on USB!
+
+Return package: 
+Byte 0: 0x02        
+Byte 1: 0x09
+Byte 2: Status Byte
+
+Note!    MAXIMUM COMMAND LENGTH
+Currently, total  direct command telegram size is limited to 64 bytes, including the telegram type byte (Byte 0). 
+
+!!!! lowlevel Byte 0: 0x02 is not included in the SendDirectCommand so the responseBuffer size should be 63 bytes !!!!!
+As specified in the LEGO®  MINDSTORMS® NXT Communication protocol document, 
+Bluetooth® packets have an additional two bytes  for size tacked onto the front, but these  are not included in this limit.
+
+*/
+
+
+
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::TextMessageSend(std::string message, int inbox)
 {
 	
-	//Message  data is treated  as a string; it must include null termination to be accepted.  
-	//Accordingly, message  size must include the null termination byte. Message  size must be capped at 
-	//59 for all message packets to be legal on USB! 
 	int length = message.size();
 	const char *charmessage = message.c_str();
 	ViUInt8* directTextCommandBuffer = NULL;
@@ -170,7 +220,7 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::TextMessageSend(std:
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WordSend(int Value, int inbox)
 {
 	ViUInt8* directLongCommandBuffer = NULL;
-//	ViUInt8 responseBuffer[64];
+
 	directLongCommandBuffer  = new ViUInt8[8];
 	directLongCommandBuffer[0] = 0x09;
 	directLongCommandBuffer[1] = inbox-1; // Mailbox number -1 (e.g. for mailbox 1 use Ox00 
@@ -180,11 +230,7 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WordSend(int Value, 
 	directLongCommandBuffer[5] = LOUPPERBYTE(Value);
 	directLongCommandBuffer[6] = HIUPPERBYTE(Value);// the MSB 
 	directLongCommandBuffer[7] = NULL;	// terminator
-	//comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directLongCommandBuffer ), 8,reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
 	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directLongCommandBuffer ), 8,NULL,0);
-	//for(int j = 0; j <  sizeof( responseBuffer )/8; j++)
-	//	std::cout << (int)responseBuffer[j] << "\n";
-
 
 }
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::BoolSend(bool bValue, int inbox)
@@ -198,6 +244,34 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::BoolSend(bool bValue
 	directBoolCommandBuffer[4] = NULL;// terminator
 	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directBoolCommandBuffer ),5,NULL,0);
 }
+/*
+MESSAGEREAD
+Byte 0: 0x00  or 0x80
+Byte 1: 0x13
+Byte 2: Remote  Inbox number (10 - 19) Byte 3: Local  Inbox number (0 - 9)
+Byte 4: Remove? (Boolean; TRUE (non-zero)  value clears  message from  Remote  Inbox)
+
+Return package: 
+Byte 0: 0x02       
+Byte 1: 0x13
+Byte 2: Status Byte
+Byte 3: Local  Inbox number (0 - 9) 
+Byte 4: Message  size
+Byte 5 - 63: Message  data  (padded)
+
+Message  data is treated as a string; it must include null termination.
+Accordingly, message size includes the null termination byte.  Furthermore, 
+return  packages have a fixed  size, so the message data field  will be padded with null bytes.
+
+Note that the remote  Inbox number may specify a value of 0-19, 
+while all other  mailbox  numbers should remain  below  9.  
+This is due to the master-slave relationship between connected NXT bricks.  
+Slave devices may not initiate  communication transactions with their masters, 
+so they store outgoing
+messages in the upper  10 mailboxes (indices 10-19).   
+Use the MessageRead command from the master device  to retrieve  these  messages.
+*/
+
 
 template  <class Tin,class Tout> std::string LegoThread<Tin,Tout>::TextMessageRecieve(int mailbox, bool remove)
 {
@@ -224,29 +298,101 @@ template  <class Tin,class Tout> std::string LegoThread<Tin,Tout>::TextMessageRe
 template  <class Tin,class Tout> int LegoThread<Tin,Tout>::WordRecieve(int mailbox, bool remove)
 {
 	return 0;
->>>>>>> b8ca8d0a1dc11d9ffb9cd1d269878de5b61bf6a6
 }
 
 template  <class Tin,class Tout> bool LegoThread<Tin,Tout>::BoolRecieve(int mailbox, bool remove)
 {
-	ViUInt8 directCommandBuffer[] = { 0x13, mailbox-1, 0x00, remove };
-	ViUInt8* directBoolCommandBuffer = NULL;
+	ViUInt8 directCommandBuffer[] = { 0x13, mailbox+9, mailbox-1, true };
+	ViUInt8 responseBuffer[63] ; //NOTE !!! Low Level Return package: 64 Bytes lowlevel Byte 0: 0x02 is not included here so this should be 63 bytes 
+	responseBuffer[62]=NULL;
+	for(int i = 0; i < 62; i++)
+		responseBuffer[i] = 0x02;
+	// Send the direct command to the NXT.
+	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+	reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+	if(responseBuffer[4]==1)
+	{
+		return true;
+	}
+	else
+		return false;
+}
 
-	
+// Testcode Gerard
+template  <class Tin,class Tout> int LegoThread<Tin,Tout>::LSGetStatus(int port)
+{
+	ViUInt8 directCommandBuffer[] = {0x0E, port};
+	ViUInt8 responseBuffer[] = {1,1,1};
+
+
+	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer),
+		   reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+
+	return (int)responseBuffer[2];
+}
+
+template  <class Tin,class Tout> int LegoThread<Tin,Tout>::GetRotationCount(int port)
+{
+	ViUInt8 directCommandBuffer[] = { 0x06, port };
+	ViInt8 responseBuffer[] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+
+	// Send the direct command to the NXT.
+	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+		reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+
+	int i = responseBuffer[20];
+	if(i < 0)
+		i = 256 + i;
+	if(responseBuffer[22] == -1)
+		responseBuffer[22] = 0;
+	if(responseBuffer[23] == -1)
+		responseBuffer[23] = 0;
+
+	int tacho = responseBuffer[23]*16777216+responseBuffer[22]*65536+responseBuffer[21]*256+i;
+
+	return tacho;
+}
+// End  Testcode Gerard
+//Code i found on the internet https://github.com/esteve/nxtpp/blob/master/src/nxt%2B%2B.cpp
+
+/* DOESN'T WORK YET - DON'T TRY - JUST TEST CODE
+void MessageSend(std::string message, int inbox)
+{
+		//ViUInt8 directCommandBuffer[] = { 0x0A, port, relative };
+		//Comm::SendDirectCommand( false, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ), NULL, 0);
+	int length = message.size();
+	const char *charmessage = message.c_str();
+	//ViUInt8 *directCommandBuffer  = (ViUInt8*) malloc(3+length);
+	ViUInt8* directCommandBuffer = NULL;
+	directCommandBuffer  = new ViUInt8[3+length+1];
+	directCommandBuffer[0] = 0x09;
+	directCommandBuffer[1] = inbox-1;
+	directCommandBuffer[2] = length+1;
+	for(int i = 3; i < 3+length; i++)
+		directCommandBuffer[i] = charmessage[i-3];
+	directCommandBuffer[length+3] = NULL;
+	for(int j = 0; j < 4+length; j++)
+		std::cout << (int)directCommandBuffer[j] << "\n";
+	//ViUInt8 directCommandBuffer[] = { 0x01 };
+	Comm::SendDirectCommand( false, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ), NULL, 0);
+}
+
+
+std::string MessageRecieve(int mailbox, bool remove)
+{
+	ViUInt8 directCommandBuffer[] = { 0x13, mailbox, 0x00, remove };
 	ViUInt8 responseBuffer[64];
 	for(int i = 0; i < 64; i++)
 		responseBuffer[i] = 0x00;
 
 
 	// Send the direct command to the NXT.
-	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+	Comm::SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
 		reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+	for(int j = 0; j < 64; j++)
+		std::cout << (int)responseBuffer[j] << "\n";
 
-	
 
-	return 0;
+	return "";
 }
-
-
-
-
+*/

@@ -2,9 +2,10 @@
 //
 //LEGO 
 //#define USEOPENCVTHREAD
-//#define USELEGOTHREAD
+#define USELEGOTHREAD
 //#define USETIEPIETHREAD
 //#define USETRAKSTARTHREAD
+//#define USERECONSTRUCTIONTHREAD
 //TiePie
 #include "Timer.h"
 
@@ -28,6 +29,8 @@
 #include "NIGTiepieThread.h"
 #include "NIGTrakstarThread.h"
 #include "NIGOpenCVThread.h"
+#include "NIGReconstructionThread.h"
+
 #include <stdlib.h> 
 #include <vtkSmartPointer.h>
 
@@ -52,6 +55,7 @@ enum
 template <class Tin,class Tout>  OpenCVThread<Tin,Tout> *  OpenCVThread<Tin,Tout>::m_OpenCVthread=0;
 template <class Tin,class Tout>  TrakstarThread<Tin,Tout> *  TrakstarThread<Tin,Tout>::m_Trakstarthread=0;
 template <class Tin,class Tout>  LegoThread<Tin,Tout> *  LegoThread<Tin,Tout>::m_Legothread=0;
+template <class Tin,class Tout>  ReconstructionThread<Tin,Tout> *  ReconstructionThread<Tin,Tout>::m_Reconstructionthread=0;
 
 template <class Tin,class Tout>  thread<Tin,Tout> *  thread<Tin,Tout>::m_thread=0;
 
@@ -80,14 +84,14 @@ int main()
 	// create sync  object	and start timer;
 	SyncTimerObject * syncTimer = new SyncTimerObject();
 	syncTimer->start();	
-
+#if 0
 	Comm::NXTComm comm;
   bool _bLegoFound;
 	bool bValue =true;
 	if(NXT::Open(&comm)) //initialize the NXT and continue if it succeeds
 	{
 		
-		std::string name="receiverFromPC1\n";
+		std::string name="receiverFromPC1";
 		_bLegoFound=true;
 		NXT::StartProgram(&comm,name);
 		std::cout << "NXT Connection made with USB " << std::endl;
@@ -97,7 +101,7 @@ int main()
 	{
 		if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 		{
-			std::string name="receiverFromPC1\n";
+			std::string name="receiverFromPC1";
 			_bLegoFound=true;
 			NXT::StartProgram(&comm,name);
 			std::cout << "NXT Connection made with BT" << std::endl;
@@ -119,26 +123,37 @@ int main()
 		int inbox=MAILBOX_RESET;
 		int Value=4;
 		//ViInt8 responseBuffer[] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
-		ViUInt8 directCommandBuffer[] = { 0x13,17, 7, true };
+		ViUInt8 directCommandBuffer[] = { 0x13,17, 7, true ,NULL};
 	//	ViUInt8 directCommandBuffer[] = {0x09, 5,2,1};
-		ViUInt8 responseBuffer[] = {2,2,2,2,2,2};
+		ViUInt8 responseBuffer[] = {2,2,2,2,2,2,2};
+		ViUInt8 responseBuffera[] = {2,2,2,2,2,2,2};
+		ViUInt8 responseBuffer1[] = {2,2,2,2,2};
 
 
-
-
-	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
 			reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+		comm.Close();
+		comm.Open();
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer ), sizeof( directCommandBuffer ),
+				reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+		comm.Close();
+		comm.Open();
+
+
 
 	for(int j = 0; j <  sizeof( responseBuffer ); j++)
 		std::cout << (int)responseBuffer[j] << "\n";
-	std::cout << (char *)responseBuffer[4] << "\n";
-	ViUInt8 directCommandBuffer1[] = { 0x13,18, 8, true };
+	//std::cout << (char *)responseBuffer[4] << "\n";
+	ViUInt8 directCommandBuffer1[] = { 0x13,18, 8, false };
 	comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directCommandBuffer1 ), sizeof( directCommandBuffer1 ),
-		reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
-
-		   //  responseBuffer[j] =1;
+		reinterpret_cast< ViByte* >( responseBuffer1 ), sizeof( responseBuffer1 ));
 
 
+	
+	//  responseBuffer[j] =1;
+
+			comm.Close();
+			return 1;
 	/*	
 	Byte O: OxOO or OxBO 
 	Byte 1: Ox13 
@@ -166,7 +181,7 @@ int main()
 	
 	//	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directBoolCommandBuffer ),5,NULL,0);
 	
-		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directBoolCommandBuffer ), 5,reinterpret_cast< ViByte* >( responseBuffer ), sizeof( responseBuffer ));
+		comm.SendDirectCommand( true, reinterpret_cast< ViByte* >( directBoolCommandBuffer ), 5,reinterpret_cast< ViByte* >( responseBuffer1 ), sizeof( responseBuffer1 ));
 	//	for(int j = 0; j <  sizeof( responseBuffer ); j++)
 		//	std::cout << (int)responseBuffer[j] << "\n";
 
@@ -186,13 +201,12 @@ int main()
 			std::cout << (int)responseBuffer[j] << "\n";
 
 
-	
+		comm.Close();
 
 			Value=4;
 
 		}
-
-
+#endif
 	// create threads 	
 #ifdef USETRAKSTARTHREAD
 
@@ -239,7 +253,7 @@ int main()
 	OpenCVThreadObj->CreateRecorderThread();
 #endif
 
-
+bool bValue=true;
 
 #ifdef USELEGOTHREAD
 	// create Lego object
@@ -251,7 +265,7 @@ int main()
 	// initialize Lego object
 	LegoThreadObj->Initialize();
 	LegoThreadObj->SetSync(syncTimer);	//
-	//	LegoThreadObj->Calibrate();
+//	LegoThreadObj->Calibrate();
 	if(LegoThreadObj->isLegoFound())
 	{
 		LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID; start PID without Calibration, reset motor position values
@@ -263,8 +277,15 @@ int main()
 
 
 	}
-#endif	
+#endif
 
+#ifdef USERECONSTRUCTIONTHREAD
+	// create Reconstruction object
+	ReconstructionObjects * ReconstructionOut;
+	ReconstructionThread<SharedObjects,ReconstructionObjects> *ReconstructionThreadObj;
+	ReconstructionThreadObj=ReconstructionThread<SharedObjects,ReconstructionObjects>::New(); //Create thread
+	ReconstructionThreadObj->SetInput(sharedobjs);
+#endif	
 #ifdef USETRAKSTARTHREAD
 	TrakStarThreadObj->StartRecorderThread();
 #endif
@@ -277,8 +298,56 @@ int main()
 #endif
 
 #ifdef USELEGOTHREAD
+
+
+
+	double Anglefactor=450/90;
+	double Zfactor=26026/15;
+	double Imagefactor=804/190;
 	if(LegoThreadObj->isLegoFound())
 	{
+		//do // clear buffer
+		//{
+		//} while (LegoThreadObj->BoolRecieve(9,true));
+
+  bool bout=false;
+	//	LegoThreadObj->BoolRecieve(9,true);
+		double zz,aa,bb;
+		zz=-0.31*Zfactor;  // corresponds to 1 CM (-7.5.. +7.5)
+		aa=-10*Anglefactor; // corresponds to -45 deg (-90.. +90)
+		bb=-10*Imagefactor; // corresponds to -45 deg  (-90.. +90)
+		LegoThreadObj->WordSend(zz,MAILBOX_A);//Z Plane + <---> -
+		LegoThreadObj->WordSend(aa,MAILBOX_B);//Angle 0 <---> -
+		LegoThreadObj->WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
+		LegoThreadObj->BoolSend(bValue,MAILBOX_START);//Start Motors
+		do 
+		{
+		} while (!LegoThreadObj->BoolRecieve(9,true));
+		bout=LegoThreadObj->BoolRecieve(9,true);
+		int bytesRead =LegoThreadObj->GetRotationCount( 0);
+		bytesRead =LegoThreadObj->LSGetStatus( 0);
+		LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
+		LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
+		LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
+		LegoThreadObj->BoolSend(bValue,MAILBOX_START);// Move motors to 0 Position
+		bout=LegoThreadObj->BoolRecieve(9,true);
+		bytesRead =LegoThreadObj->LSGetStatus( 0);
+		LegoThreadObj->WaitForNxtDone(false);
+		do 
+		{
+		} while (!LegoThreadObj->BoolRecieve(9,true));
+
+	 bytesRead =LegoThreadObj->GetRotationCount( 0);
+	 LegoThreadObj->Close(  );
+
+	return 0;
+		
+		//LegoThreadObj->WaitForRotationIdle();
+
+
+
+
+
 		//LegoThreadObj->StartRecorderThread();
 	}
 

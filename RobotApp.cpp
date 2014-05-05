@@ -13,9 +13,10 @@
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
 //#define USEOPENCVTHREAD
-//#define USELEGOTHREAD
+#define USELEGOTHREAD
 //#define USETIEPIETHREAD
-#define USETRAKSTARTHREAD
+//#define USERECONSTRUCTIONTHREAD
+//#define USETRAKSTARTHREAD
 //TiePie
 #include "TiePieDLL.h"
 #include "tiepie.h"
@@ -27,6 +28,7 @@
 #include "NIGTiepieThread.h"
 #include "NIGTrakstarThread.h"
 #include "NIGOpenCVThread.h"
+#include "NIGReconstructionThread.h"
 #include <stdlib.h> 
 #include <vtkSmartPointer.h>
 
@@ -40,6 +42,7 @@
 template <class Tin,class Tout>  OpenCVThread<Tin,Tout> *  OpenCVThread<Tin,Tout>::m_OpenCVthread=0;
 template <class Tin,class Tout>  TrakstarThread<Tin,Tout> *  TrakstarThread<Tin,Tout>::m_Trakstarthread=0;
 template <class Tin,class Tout>  LegoThread<Tin,Tout> *  LegoThread<Tin,Tout>::m_Legothread=0;
+template <class Tin,class Tout>  ReconstructionThread<Tin,Tout> *  ReconstructionThread<Tin,Tout>::m_Reconstructionthread=0;
 
 template <class Tin,class Tout>  thread<Tin,Tout> *  thread<Tin,Tout>::m_thread=0;
 
@@ -79,8 +82,11 @@ int main()
 	double df_TrakStar = 80; // (Hz)
 	int recordLength_TrakStar = ceil( df_TrakStar * acquisitionTime );
 	TrakStarThreadObj->Initialize("id", recordLength_TrakStar, df_TrakStar  );
-	TrakStarThreadObj->SetSync(syncTimer);
-	TrakStarThreadObj->CreateRecorderThread();
+	if( TrakStarThreadObj->isTrakstarFound())
+	{
+		TrakStarThreadObj->SetSync(syncTimer);
+		TrakStarThreadObj->CreateRecorderThread();
+	}
 #endif
 
 #ifdef USETIEPIETHREAD
@@ -124,7 +130,7 @@ int main()
 	// initialize Lego object
 	LegoThreadObj->Initialize();
 	LegoThreadObj->SetSync(syncTimer);	//
-//	LegoThreadObj->Calibrate();
+	//LegoThreadObj->Calibrate();
 	if(LegoThreadObj->isLegoFound())
 	{
 		LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID; start PID without Calibration, reset motor position values
@@ -136,6 +142,13 @@ int main()
 	}
 #endif	
 
+#ifdef USERECONSTRUCTIONTHREAD
+	// create Reconstruction object
+	ReconstructionObjects * ReconstructionOut;
+	ReconstructionThread<SharedObjects,ReconstructionObjects> *ReconstructionThreadObj;
+	ReconstructionThreadObj=ReconstructionThread<SharedObjects,ReconstructionObjects>::New(); //Create thread
+	ReconstructionThreadObj->SetInput(sharedobjs);
+#endif	
 #ifdef USETRAKSTARTHREAD
 	TrakStarThreadObj->StartRecorderThread();
 #endif
@@ -178,14 +191,17 @@ int main()
 
 
 #ifdef USETRAKSTARTHREAD
-	TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
-	// retrieve and save data
-	TrakstarOut = TrakStarThreadObj->GetOutput();
-	std::vector<vnl_matrix<double>> positionMeasurements = TrakstarOut->GetMeasures();
+	if( TrakStarThreadObj->isTrakstarFound())
+	{
+		TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
+		// retrieve and save data
+		TrakstarOut = TrakStarThreadObj->GetOutput();
+		std::vector<vnl_matrix<double>> positionMeasurements = TrakstarOut->GetMeasures();
   
-  // change the data saving into something more generic (Alex 01-May)
-	helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
-  helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
+		// change the data saving into something more generic (Alex 01-May)
+		helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
+		helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
+	}
 #endif
 
 #ifdef USETIEPIETHREAD
@@ -198,35 +214,27 @@ int main()
 #ifdef USEOPENCVTHREAD
 OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 #endif
-<<<<<<< HEAD
 
 #ifdef USELEGOTHREAD
 int val=0;
-=======
-	int val=0;
 
-
-#ifdef USELEGOTHREAD
->>>>>>> a99ee2e275a09e88005f5e8351b05d416c924b43
-do 
-{
-
-	if(LegoThreadObj->isLegoFound())
-	{
-
-		//	(*m_CurrentMeasures)[1]=(val)%90;
-		(*m_CurrentMeasures)[2]=(val)%90;
-		//	(*m_CurrentMeasures)[3]=(val)%5;
-		val +=2;
-		Wait(5000);
-	}
-} while (1);
-#endif
-
+//do 
+//{
+//	if(LegoThreadObj->isLegoFound())
+//	{
+//
+//		//	(*m_CurrentMeasures)[1]=(val)%90;
+//		//(*m_CurrentMeasures)[2]=(val)%90;
+//			(*m_CurrentMeasures)[3]=(val)%5;
+//		val +=2;
+//		Wait(5000);
+//	}
+//} while (1);
 
 LegoThreadObj->WaitUntilRecorderThreadIsDone();
 LegoOut = LegoThreadObj->GetOutput();
 
+#if 0
 Wait(2000);
 if(LegoThreadObj->isLegoFound())
 {
@@ -264,6 +272,7 @@ if(LegoThreadObj->isLegoFound())
 	LegoThreadObj->WaitForRotationIdle();
 }
 Beep( 750, 300 );
+#endif
 #endif
 	return 0;
 }

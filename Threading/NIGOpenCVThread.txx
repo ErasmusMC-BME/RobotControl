@@ -1,19 +1,6 @@
 // NXT++ test.cpp : Defines the entry point for the console application.
 //
 
-#include <iostream>
-#include <fstream>
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <cv.h>
-#include "highgui.h" 
-//#include "NIGOpenCVThread.h"
-#include "vnl/vnl_vector.h"
-//#include "vxlutility.h"
-
-#include "itkImageDuplicator.h"
 
 ImageType::Pointer itkImageFromBuffer( IplImage* opencvIO, void* buffer, size_t bufferSize )
 {
