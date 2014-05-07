@@ -131,14 +131,13 @@ int main()
 	LegoThreadObj->Initialize();
   if(LegoThreadObj->isLegoFound())
   {
-    LegoThreadObj->SetSync(syncTimer);	//
-	  LegoThreadObj->Calibrate();
+ 		LegoThreadObj->SetSync(syncTimer);	//
+	  //LegoThreadObj->Calibrate();
 
 		LegoThreadObj->BoolSend(bValue,MAILBOX_RESET);//init PID; start PID without Calibration, reset motor position values
 		LegoThreadObj->WordSend(0,MAILBOX_A);//Z Plane + <---> -
 		LegoThreadObj->WordSend(0,MAILBOX_B);//Angle 0 <---> -
 		LegoThreadObj->WordSend(0,MAILBOX_C);//Image Plane  + <---> -
-
 		LegoThreadObj->CreateRecorderThread();
 	}
 #endif	
