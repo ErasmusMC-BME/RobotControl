@@ -30,15 +30,15 @@ template <class Tin,class Tout>  LegoThread<Tin,Tout> *  LegoThread<Tin,Tout>::N
 template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const char *fmt, ...)
 {
 	bool bValue =true;
-	if(NXT::Open(&comm)) //initialize the NXT and continue if it succeeds
-	{
-		std::string name="receiverFromPC1\n";
-		_bLegoFound=true;
-		NXT::StartProgram(&comm,name);
-		std::cout << "NXT Connection made with USB " << std::endl;
-		return;
-	}
-	else
+	//if(NXT::Open(&comm)) //initialize the NXT and continue if it succeeds
+	//{
+	//	std::string name="receiverFromPC1\n";
+	//	_bLegoFound=true;
+	//	NXT::StartProgram(&comm,name);
+	//	std::cout << "NXT Connection made with USB " << std::endl;
+	//	return;
+	//}
+	//else
 	{
 		if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 		{
@@ -58,7 +58,7 @@ template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const c
 template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( void )
 {
 
-	// This is the desired entry-point-function but to get
+	// This is the desired entr`y-point-function but to get
 	// here we have to use a 2 step procedure involving
 	// the ThreadStaticEntryPoint() function.
 	// should be a defined var
@@ -78,14 +78,18 @@ template  <class Tin,class Tout>  void LegoThread<Tin,Tout>::ThreadEntryPoint( v
 
 				bool bValue=true;
 				double zz,aa,bb;
-				zz=record.z*Zfactor;  // corresponds to 1 CM (-7.5.. +7.5)
+				zz=record.z*Zfactor/10;  // corresponds to 1 CM (-7.5.. +7.5)
 				aa=record.y*Anglefactor; // corresponds to -45 deg (-90.. +90)
 				bb=record.x*Imagefactor; // corresponds to -45 deg  (-90.. +90)
 				WaitForNxtDone(true); //empty buffer
 				WordSend(zz,MAILBOX_A);//Z Plane + <---> -
 				WordSend(aa,MAILBOX_B);//Angle 0 <---> -
 				WordSend(bb,MAILBOX_C);//Image Plane  + <---> -
+				//BoolRecieve(9,false);
 				BoolSend(bValue,MAILBOX_START);//Start Motors
+				//BoolRecieve(9,true);
+				//BoolRecieve(10,false);
+				//BoolRecieve(9,false);
 				WaitForNxtDone(false);
 			//	WaitForRotationIdle();
 			//	TextMessageRecieve(MAILBOX_RECIEVE,false);
@@ -156,6 +160,7 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Calibrate()
 	{   
 		WaitForNxtDone(true);
 		BoolSend(bValue,MAILBOX_INIT);//init PID; calibrate motors
+		WaitForNxtDone(false);
 		WordSend(0,MAILBOX_A);//Z Plane + <---> -
 		WordSend(0,MAILBOX_B);//Angle 0 <---> -
 		WordSend(0,MAILBOX_C);//Image Plane  + <---> -
@@ -208,7 +213,7 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::TextMessageSend(std:
 	directTextCommandBuffer[2] = length+1;	// Byte 3: Message size 
 	for(int i = 3; i < 3+length; i++)		// Byte 4 - N: Message data, where N = Message size + 3 
 		directTextCommandBuffer[i] = charmessage[i-3];
-	directTextCommandBuffer[length+3] = NULL;
+	directTextCommandBuffer[length+3] = '\0';
 	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directTextCommandBuffer ),sizeof( directTextCommandBuffer ),NULL,0);
 
 }
@@ -219,6 +224,9 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::TextMessageSend(std:
 
 template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WordSend(int Value, int inbox)
 {
+
+	ViUInt8 directBoolSetInputCommandBuffer[] = { 0x05, 0, 0,'\0' };
+	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directBoolSetInputCommandBuffer ),5,NULL,0);
 	ViUInt8* directLongCommandBuffer = NULL;
 
 	directLongCommandBuffer  = new ViUInt8[8];
@@ -229,7 +237,7 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::WordSend(int Value, 
 	directLongCommandBuffer[4] = HIBYTE(Value);
 	directLongCommandBuffer[5] = LOUPPERBYTE(Value);
 	directLongCommandBuffer[6] = HIUPPERBYTE(Value);// the MSB 
-	directLongCommandBuffer[7] = NULL;	// terminator
+	directLongCommandBuffer[7] = '\0';	// terminator
 	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directLongCommandBuffer ), 8,NULL,0);
 
 }
@@ -241,14 +249,16 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::BoolSend(bool bValue
 	directBoolCommandBuffer[1] = inbox-1; // Mailbox number -1 (e.g. for mailbox 1 use Ox00 
 	directBoolCommandBuffer[2] = 2; // this is the datalength: 1 byte + a 1 byte terminator 
 	directBoolCommandBuffer[3] = bValue;
-	directBoolCommandBuffer[4] = NULL;// terminator
+	directBoolCommandBuffer[4] = '\0';// terminator
+
 	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directBoolCommandBuffer ),5,NULL,0);
 }
 /*
 MESSAGEREAD
 Byte 0: 0x00  or 0x80
 Byte 1: 0x13
-Byte 2: Remote  Inbox number (10 - 19) Byte 3: Local  Inbox number (0 - 9)
+Byte 2: Remote  Inbox number (10 - 19) 
+Byte 3: Local  Inbox number (0 - 9)
 Byte 4: Remove? (Boolean; TRUE (non-zero)  value clears  message from  Remote  Inbox)
 
 Return package: 
@@ -277,9 +287,9 @@ template  <class Tin,class Tout> std::string LegoThread<Tin,Tout>::TextMessageRe
 {
 //BYTE loByte = 17;
 //BYTE hiByte = 45;
-	ViUInt8 directCommandBuffer[] = { 0x13, mailbox-1, mailbox-1, remove };
-	ViUInt8 responseBuffer[64];
-	for(int i = 0; i < 64; i++)
+	ViUInt8 directCommandBuffer[] = { 0x13, mailbox+9, mailbox-1, remove };
+	ViUInt8 responseBuffer[63];
+	for(int i = 0; i < 63; i++)
 		responseBuffer[i] = 0x00;
 
 
@@ -302,9 +312,12 @@ template  <class Tin,class Tout> int LegoThread<Tin,Tout>::WordRecieve(int mailb
 
 template  <class Tin,class Tout> bool LegoThread<Tin,Tout>::BoolRecieve(int mailbox, bool remove)
 {
-	ViUInt8 directCommandBuffer[] = { 0x13, mailbox+9, mailbox-1, true };
+	ViUInt8 directBoolSetInputCommandBuffer[] = { 0x05, 0, 0,'\0' };
+	comm.SendDirectCommand( false, reinterpret_cast< ViByte* >( directBoolSetInputCommandBuffer ),5,NULL,0);
+
+	ViUInt8 directCommandBuffer[] = { 0x13, mailbox+9, mailbox-1, remove,'\0' };
 	ViUInt8 responseBuffer[63] ; //NOTE !!! Low Level Return package: 64 Bytes lowlevel Byte 0: 0x02 is not included here so this should be 63 bytes 
-	responseBuffer[62]=NULL;
+	responseBuffer[62]='\0';
 	for(int i = 0; i < 62; i++)
 		responseBuffer[i] = 0x02;
 	// Send the direct command to the NXT.
