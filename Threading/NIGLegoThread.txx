@@ -156,6 +156,8 @@ template  <class Tin,class Tout> void LegoThread<Tin,Tout>::Calibrate()
 	{   
 		WaitForNxtDone(true);
 		BoolSend(bValue,MAILBOX_INIT);//init PID; calibrate motors
+    WaitForNxtDone(false);
+
 		WordSend(0,MAILBOX_A);//Z Plane + <---> -
 		WordSend(0,MAILBOX_B);//Angle 0 <---> -
 		WordSend(0,MAILBOX_C);//Image Plane  + <---> -
