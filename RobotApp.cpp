@@ -12,8 +12,9 @@
 #include <windows.h>          // for HANDLE
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
-//#define USEOPENCVTHREAD
+#define USEOPENCVTHREAD
 #define USELEGOTHREAD
+//#define USEVIEWINGTHREAD
 //#define USETIEPIETHREAD
 //#define USERECONSTRUCTIONTHREAD
 //#define USETRAKSTARTHREAD
@@ -29,6 +30,7 @@
 #include "NIGTrakstarThread.h"
 #include "NIGOpenCVThread.h"
 #include "NIGReconstructionThread.h"
+#include "NIGViewingThread.h"
 #include <stdlib.h> 
 #include <vtkSmartPointer.h>
 
@@ -43,6 +45,7 @@ template <class Tin,class Tout>  OpenCVThread<Tin,Tout> *  OpenCVThread<Tin,Tout
 template <class Tin,class Tout>  TrakstarThread<Tin,Tout> *  TrakstarThread<Tin,Tout>::m_Trakstarthread=0;
 template <class Tin,class Tout>  LegoThread<Tin,Tout> *  LegoThread<Tin,Tout>::m_Legothread=0;
 template <class Tin,class Tout>  ReconstructionThread<Tin,Tout> *  ReconstructionThread<Tin,Tout>::m_Reconstructionthread=0;
+template <class Tin,class Tout>  ViewingThread<Tin,Tout> * ViewingThread<Tin,Tout>::m_Viewingthread=0;
 
 template <class Tin,class Tout>  thread<Tin,Tout> *  thread<Tin,Tout>::m_thread=0;
 
@@ -149,6 +152,7 @@ int main()
 	ReconstructionThreadObj=ReconstructionThread<SharedObjects,ReconstructionObjects>::New(); //Create thread
 	ReconstructionThreadObj->SetInput(sharedobjs);
 #endif	
+
 #ifdef USETRAKSTARTHREAD
 	TrakStarThreadObj->StartRecorderThread();
 #endif
@@ -167,26 +171,89 @@ int main()
 	}
 
 #endif
+
+
+
+	//ImageType::Pointer clonedImage = (*m_VideoImage)[0]->GetOutput();
+
+	//typedef itk::ImageToVTKImageFilter<ImageType> ImageConverterITKToVTK;
+	//ImageConverterITKToVTK::Pointer ConverterPtr= ImageConverterITKToVTK::New();
+	//ConverterPtr->SetInput((*m_VideoImage)[0]->GetOutput());
+	//ConverterPtr->Update();
+
+
+#ifdef USEVIEWINGTHREAD
+	// createViewing object
+	//	 ViewingnObjects *  ViewingOut;
+	ViewingThread<SharedObjects,ViewingObjects> * ViewingThreadObj;
+	ViewingThreadObj=ViewingThread<SharedObjects,ViewingObjects>::New(); //Create thread
+	ViewingThreadObj->SetInput(sharedobjs);
+	// initialize OpenCV object
+	ViewingThreadObj->Initialize();
+	ViewingThreadObj->SetSync(syncTimer);
+	ViewingThreadObj->CreateRecorderThread();
+#endif
+#ifdef USEVIEWINGTHREAD
+	ViewingThreadObj->StartRecorderThread();
+#endif
+	int cnt=0;
+		int val=0;
 #ifdef USEOPENCVTHREAD
 	do 
 	{
+
+
+
+#ifdef USELEGOTHREAD
+	
+
+		if(LegoThreadObj->isLegoFound())
+		{
+			if (val%2)
+			{
+				(*m_CurrentMeasures)[1]=-(val)%90;
+				(*m_CurrentMeasures)[2]=-(val)%90;
+				(*m_CurrentMeasures)[3]=-(val)%5;
+
+			}
+			else
+			{
+				(*m_CurrentMeasures)[1]=(val)%90;
+				(*m_CurrentMeasures)[2]=(val)%90;
+				(*m_CurrentMeasures)[3]=(val)%5;
+
+			}
+	
+			val +=2;
+			Wait(2000);
+		}
+#endif
+
 		if( OpenCVThreadObj->isOpenCVFound())
 		{
 			VideoOut=OpenCVThreadObj->GetOutput();
 			_timeVideo=VideoOut->GetTimeVideo();
 			_VideoImage=VideoOut->GetVideoImage();
 
-			//std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
-			WriterType::Pointer writer = WriterType::New();
-			writer->SetFileName("d:\\cam23.tif");
-			ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
-			writer->SetInput(clonedImage);
-			writer->Update();
-			utility<double> helper;
-			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+
+
+
+			////std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
+			//WriterType::Pointer writer = WriterType::New();
+			//writer->SetFileName("d:\\cam23.tif");
+			//ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
+			//writer->SetInput(clonedImage);
+			//writer->Update();
+			//utility<double> helper;
+			//helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
 		}
-	} while (1);
+		cnt++;
+	} while (cnt<5);
 #endif
+	#ifdef USELEGOTHREAD
+//	LegoThreadObj->Close(  );
+	#endif
+	return 0;
 	// wait for the measurement threads to finish
 
 
@@ -216,7 +283,7 @@ OpenCVThreadObj->WaitUntilRecorderThreadIsDone();
 #endif
 
 #ifdef USELEGOTHREAD
-int val=0;
+val=0;
 
 do 
 {

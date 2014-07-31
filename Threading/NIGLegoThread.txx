@@ -40,6 +40,7 @@ template  <class Tin,class Tout>  void  LegoThread<Tin,Tout>::Initialize(const c
 	//}
 	//else
 	{
+		//comm.Close();
 		if(NXT::OpenBT(&comm)) //initialize the NXT and continue if it succeeds
 		{
 			std::string name="receiverFromPC1";

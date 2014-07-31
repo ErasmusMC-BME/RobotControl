@@ -11,7 +11,7 @@
 #include "itkImportImageFilter.h"
 #include "itkImageFileWriter.h"
 #include "itkImageDuplicator.h"
-
+#include "itkImageToVTKImageFilter.h"
 typedef itk::RGBPixel<char>         PixelType;
 
 //typedef char         PixelType;
@@ -21,6 +21,7 @@ typedef itk::Image<PixelType, 2>             ImageType;
 typedef itk::ImageFileWriter<ImageType>      WriterType;
 typedef itk::SizeValueType                   FrameOffsetType;
 typedef itk::ImageDuplicator< ImageType >	 DuplicatorType;     
+typedef itk::ImageToVTKImageFilter<ImageType> ImageConverterITKToVTK;
 
 class SharedObjects
 {
@@ -28,6 +29,8 @@ private:
 	vnl_vector<double> m_voltageCh1;
 	vnl_vector<double> m_timeCh1;
 	vnl_vector<double> m_CurrentMeasures;
+	ImageConverterITKToVTK::Pointer m_ImageConverterITKToVTKPtr;
+
 	/*!
   	m_CurrentMeasures Current Time (m_CurrentMeasures[0]) ,  Position (m_CurrentMeasures[1...6]) and ImageFrameNr (m_CurrentMeasures[7])  values
 	*/
@@ -39,10 +42,12 @@ public:
 	{
 		return m_timeCh1;
 	}
+
 	vnl_vector<double>  GetVoltageCh1()
 	{
 		return m_voltageCh1;
 	}
+
 	void  SetTimeCh1(vnl_vector<double> timeCh1)
 	{
 		m_timeCh1=timeCh1;
@@ -50,6 +55,11 @@ public:
 	void SetVoltageCh1(vnl_vector<double> voltageCh1 )
 	{
 		m_voltageCh1=voltageCh1;
+	}
+
+	ImageConverterITKToVTK::Pointer  GetImageConverterITKToVTKPtr()
+	{
+		return m_ImageConverterITKToVTKPtr;
 	}
 
 	vnl_vector<double>  * GetCurrentMeasures()
@@ -67,6 +77,7 @@ public:
 			m_CurrentMeasures.set_size( 8 );
 			for (int i=0;i<8;i++)
 				m_CurrentMeasures[i]=0.0;
+			 m_ImageConverterITKToVTKPtr= ImageConverterITKToVTK::New();
 	}
 
 	virtual ~SharedObjects()

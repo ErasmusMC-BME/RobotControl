@@ -80,6 +80,8 @@ SET( RobotBaseFiles
 	Threading/NIGLegoThread.h
 	Threading/NIGOpenCVThread.txx
 	Threading/NIGOpenCVThread.h
+	Threading/NIGViewingThread.txx
+	Threading/NIGViewingThread.h
 	Threading/NIGTrakstarThread.txx
 	Threading/NIGTrakstarThread.h
 	MainPage.h
