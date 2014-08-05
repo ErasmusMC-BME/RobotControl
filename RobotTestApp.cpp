@@ -1,8 +1,8 @@
 // NXT++ test.cpp : Defines the entry point for the console application.
 //
 //LEGO 
-//#define USEOPENCVTHREAD
-#define USELEGOTHREAD
+#define USEOPENCVTHREAD
+//#define USELEGOTHREAD
 //#define USETIEPIETHREAD
 //#define USETRAKSTARTHREAD
 //#define USERECONSTRUCTIONTHREAD

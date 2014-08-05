@@ -140,9 +140,9 @@ unsigned int recordLength_Video=_numSamples;
 					_VideoImage[_ActualFrameNr]->Update();  
 
 
-					ImageConverterITKToVTK::Pointer ImageConverterITKToVTKPtr=m_InputData->GetImageConverterITKToVTKPtr();
-					ImageConverterITKToVTKPtr->SetInput(_VideoImage[_ActualFrameNr]->GetOutput());
-					ImageConverterITKToVTKPtr->Update();
+					//ImageConverterITKToVTK::Pointer ImageConverterITKToVTKPtr=m_InputData->GetImageConverterITKToVTKPtr();
+					//ImageConverterITKToVTKPtr->SetInput(_VideoImage[_ActualFrameNr]->GetOutput());
+					//ImageConverterITKToVTKPtr->Update();
 					vnl_vector<double> * m_CurrentMeasures=m_InputData->GetCurrentMeasures();
 					(*m_CurrentMeasures)[7]=_ActualFrameNr;
 

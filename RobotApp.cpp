@@ -199,7 +199,7 @@ int main()
 	int cnt=0;
 		int val=0;
 #ifdef USEOPENCVTHREAD
-	do 
+	do // Start of while loop
 	{
 
 
@@ -236,6 +236,19 @@ int main()
 			_VideoImage=VideoOut->GetVideoImage();
 
 
+#ifdef USETRAKSTARTHREAD
+			if( TrakStarThreadObj->isTrakstarFound())
+			{
+				TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
+				// retrieve and save data
+				TrakstarOut = TrakStarThreadObj->GetOutput();
+				std::vector<vnl_matrix<double>> positionMeasurements = TrakstarOut->GetMeasures();
+
+				// change the data saving into something more generic (Alex 01-May)
+				helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
+				helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
+			}
+#endif
 
 
 			////std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
@@ -248,7 +261,7 @@ int main()
 			//helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
 		}
 		cnt++;
-	} while (cnt<5);
+	} while (1);//while (cnt<5);
 #endif
 	#ifdef USELEGOTHREAD
 //	LegoThreadObj->Close(  );
