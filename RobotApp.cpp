@@ -13,11 +13,11 @@
 #include <process.h>    /* CreateRecorderThread, _endthread */
 
 #define USEOPENCVTHREAD
-#define USELEGOTHREAD
+//#define USELEGOTHREAD
 //#define USEVIEWINGTHREAD
 //#define USETIEPIETHREAD
 //#define USERECONSTRUCTIONTHREAD
-//#define USETRAKSTARTHREAD
+#define USETRAKSTARTHREAD
 //TiePie
 #include "TiePieDLL.h"
 #include "tiepie.h"
@@ -341,6 +341,7 @@ if(LegoThreadObj->isLegoFound())
 Beep( 750, 300 );
 #endif
 #endif
+  std::cin.ignore();
 	return 0;
 }
 
