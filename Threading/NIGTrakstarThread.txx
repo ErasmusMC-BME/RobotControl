@@ -8,9 +8,10 @@ template  <class Tin,class Tout>  TrakstarThread<Tin,Tout>::TrakstarThread( void
 	_bTrakstarReady = false;
 	_numSamples = 10;
 	_samplingFreq = 80;
+	_numSensors=0;
 	//_sensorID = 0;
 	_transmitterID = 0;
-
+	
 }
 
 template  <class Tin,class Tout>  TrakstarThread<Tin,Tout>::~TrakstarThread( void )
@@ -83,6 +84,7 @@ template  <class Tin,class Tout>  void  TrakstarThread<Tin,Tout>::Initialize(con
 		_transmitterID = 0;
 		
 		std::cout  << "TrakStar initialization finished." << std::endl;
+		 SetNumSensors(_sensorID.size());
 		_bTrakstarReady = true;
 	}
 	else
@@ -119,7 +121,7 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
 		DOUBLE_POSITION_ANGLES_RECORD record, *pRecord = &record;
 		double currentTime;
 		std::cout << "TrakStar started recording at: " << m_timer->getElapsedTimeInSec() << " sec." << std::endl;
-		
+	
     // prepare the vector containing the measurements
     vnl_matrix<double> currentMeasures( _numSamples, 7, -1.0 );
     for ( int sensorItr = 0; sensorItr < _sensorID.size(); sensorItr++ )
@@ -127,7 +129,7 @@ template  <class Tin,class Tout> void TrakstarThread<Tin,Tout>::RecordPositionDa
       _measures.push_back( currentMeasures );
     }
 
-    
+   
 		for (int idxMeasure = 0; idxMeasure < _numSamples; ++idxMeasure) // change name to possibly idxSlot
 		{
       for ( int sensorItr = 0; sensorItr < _sensorID.size(); sensorItr++ )

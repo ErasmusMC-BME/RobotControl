@@ -79,6 +79,7 @@ private:
 	bool _bTrakstarFound;
 	bool _bTrakstarReady;
 	int _numSamples;
+	int _numSensors;
 	double _samplingFreq;
 	std::vector<vnl_matrix<double>> _measures;
 
@@ -102,6 +103,16 @@ public:
 	void SetNumSamples(int numSamples)
 	{
 		_numSamples=numSamples;
+	}
+
+	void SetNumSensors(int numSensors)
+	{
+		_numSensors=numSensors;
+	}
+
+	int GetNumSensors()
+	{
+		return _numSensors;
 	}
 	void SetsamplingFreq(double samplingFreq)
 	{

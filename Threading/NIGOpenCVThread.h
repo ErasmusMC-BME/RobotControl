@@ -14,8 +14,8 @@
 #include "NIGMultiThread.h"
 #include "itkImageDuplicator.h"
 #include "vnl/vnl_vector.h"
-#include <cv.h>
-#include "highgui.h" 
+#include <opencv/cv.h>
+#include "opencv/highgui.h" 
 class SharedObjects;
 
 /*!
@@ -44,6 +44,8 @@ private:
 	 *
 	 */
 	int *_ActualFrameNr;
+
+	CvCapture* _capture ;
 	/*!
 	 * \brief the actual frame number 0.. (m_numSamples-1)
 	 *
@@ -65,6 +67,12 @@ public:
 	{
 		return _timeVideo;
 	}
+
+	CvCapture* GetCapture()
+	{
+		return _capture;
+	}
+
 	/*!
 	 * \brief  sets the List to store the time per frame
 	 *
@@ -78,6 +86,10 @@ public:
 		_timeVideo=timeVideo;
 	}
 
+	void SetCapture(CvCapture* Capture )
+	{
+		_capture=Capture;
+	}
 	/*!
 	 * \brief returns the actual frame number 0.. (m_numSamples-1)
 	 *

@@ -19,7 +19,7 @@
 #include "vtkInteractorStyleImage.h"
 #include "vtkCommand.h"
 #include "vtkImageData.h"
-#include "vtkImageMapper3D.h"
+//#include "vtkImageMapper3D.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkInformation.h"
 #include <vtkMetaImageReader.h>

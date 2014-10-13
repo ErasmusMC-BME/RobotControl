@@ -236,29 +236,38 @@ int main()
 			_VideoImage=VideoOut->GetVideoImage();
 
 
-#ifdef USETRAKSTARTHREAD
-			if( TrakStarThreadObj->isTrakstarFound())
-			{
-				TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
-				// retrieve and save data
-				TrakstarOut = TrakStarThreadObj->GetOutput();
-				std::vector<vnl_matrix<double>> positionMeasurements = TrakstarOut->GetMeasures();
 
-				// change the data saving into something more generic (Alex 01-May)
-				helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
-				helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
-			}
+			utility<double> helper;
+			int ActualFrameNr =*OpenCVThreadObj->GetOutput()->GetActualFrameNr();
+			if(ActualFrameNr==40)
+			{
+
+#ifdef USETRAKSTARTHREAD
+				if( TrakStarThreadObj->isTrakstarFound())
+				{
+					TrakStarThreadObj->WaitUntilRecorderThreadIsDone();
+					// retrieve and save data
+					TrakstarOut = TrakStarThreadObj->GetOutput();
+					std::vector<vnl_matrix<double>> positionMeasurements = TrakstarOut->GetMeasures();
+				  int   NumSensors=	TrakStarThreadObj->GetNumSensors();
+
+					// change the data saving into something more generic (Alex 01-May)
+					if(NumSensors) helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
+					if(NumSensors>1) helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
+					if(NumSensors>2) helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh3_" + acquisitionTag + ".mat", positionMeasurements[2], "TrakStarDataCh3" + acquisitionTag );
+
+				}
 #endif
 
 
-			////std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
-			//WriterType::Pointer writer = WriterType::New();
-			//writer->SetFileName("d:\\cam23.tif");
-			//ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
-			//writer->SetInput(clonedImage);
-			//writer->Update();
-			//utility<double> helper;
-			//helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+				WriterType::Pointer writer = WriterType::New();
+				writer->SetFileName("d:\\cam24.tif");
+				ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
+				writer->SetInput(clonedImage);
+				writer->Update();
+
+				helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+			}
 		}
 		cnt++;
 	} while (1);//while (cnt<5);
@@ -281,6 +290,7 @@ int main()
 		// change the data saving into something more generic (Alex 01-May)
 		helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh1_" + acquisitionTag + ".mat", positionMeasurements[0], "TrakStarDataCh1" + acquisitionTag );
 		helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh2_" + acquisitionTag + ".mat", positionMeasurements[1], "TrakStarDataCh2" + acquisitionTag );
+		helper.matlabSaveVnlMatrix( dataPath + "TrakStarDataCh3_" + acquisitionTag + ".mat", positionMeasurements[2], "TrakStarDataCh3" + acquisitionTag );
 	}
 #endif
 

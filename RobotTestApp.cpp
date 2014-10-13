@@ -62,10 +62,115 @@ template <class Tin,class Tout>  thread<Tin,Tout> *  thread<Tin,Tout>::m_thread=
 
 int main()
 {
+	///TEST1
+
+	//cv::VideoCapture m_cap;
+	//m_cap.open(0);
+	//if ( !m_cap.isOpened() )
+	//{
+	//	std::cout << "Video capture could not be opened. ABORT!" << std::endl;
+	//}
+	//else
+	//{
+	//	cv::Mat frame;
+	//	int itr = 0;
+	//	cvNamedWindow( "threadedVideoShow", CV_WINDOW_AUTOSIZE );
+	//	for (;;)
+	//	{
+	//		m_cap >> frame;
+	//		if(!frame.empty())
+	//		{
+	//			cv::cvtColor( frame, frame, cv::COLOR_BGR2GRAY );
+	//			cv::imshow( "threadedVideoShow", frame );
+	//		}
+	//	}
+	//}
+	//return 0;
+	//// Test2 
+
+	//CvCapture* capture = cvCaptureFromCAM( CV_CAP_ANY );
+	//if(capture)
+	//{
+	//
+	//	// Create a window in which the captured images will be presented
+	//	cvNamedWindow( "threadedVideoShow", CV_WINDOW_AUTOSIZE );
+	//	// Show the image captured from the camera in the window and repeat
+	//
+	//	IplImage* frame = cvQueryFrame( capture );
+
+	//	while ( 1 ) {
+	//		// Get one frame
+	//		IplImage* frame = cvQueryFrame( capture );
+	//		if(frame)
+	//		{
+
+	//			cvShowImage( "threadedVideoShow", frame );
+	//		}
+	//	}
+	//}
+
+	//cvReleaseCapture( &capture );
+	//return 0;
+
+	//TEST 3
+	
+
+	//CvCapture* capture = 0;
+	//cv::Mat frame, frameCopy, image;
+	//IplImage* frame1;
+
+	//capture = cvCaptureFromCAM( 0 ); //0=default, -1=any camera, 1..99=your camera
+	//if(!capture)std:: cout << "No camera detected" << std::endl;
+	//cvNamedWindow("result",CV_WINDOW_AUTOSIZE);
+	//std:: cout << "camera init" << std::endl;
+	//HWND hwnd = (HWND)cvGetWindowHandle("result");
+	////ShowWindow(hwnd, SW_SHOW);
+	////SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_TRANSPARENT);
+
+	////HWND hParent = ::GetParent(hwnd);   
+	////  ::SetParent(hParent,hwnd);   
+	////  ::ShowWindow(hParent, SW_HIDE);  
 
 
 
+	////	getchar();
+	//if( capture )
+	//{
+
+	//	//frame  = cvGrabFrame( capture );//cvRetrieveFrame
+	//	IplImage* iplImg = cvQueryFrame( capture );
+	//	//
+	//	std:: cout << "camera detected" << std::endl;
+	//	for(;;)
+	//	{
+	//		//Sleep(4000);
+	//		//	frame = iplImg;
+	//		std:: cout << "camera awake" << std::endl;
+	//		//getchar();
+	//		IplImage* iplImg = cvQueryFrame( capture );
+	//		int framesPerSecond = (int)cvGetCaptureProperty(capture,CV_CAP_PROP_FPS);
+	//		frame = iplImg;
+	//		if( !frame.empty())
+	//		{
+
+	//			cvShowImage( "result", iplImg );
+	//			//cvUpdateWindow("result");
+	//			if( cv::waitKey( 10 ) >= 0 )
+	//				cvReleaseCapture( &capture );
+	//		}
+	//	}
+
+	//	cv::waitKey(0);
+
+	//	cvDestroyWindow("result");
+
+	//	return 0;
+	//}
+
+
+	//return 0 ;
 	// user variables
+
 	utility<double> helper;
 	double acquisitionTime = 30; // (sec)
 	std::string acquisitionTag = "010";
@@ -84,6 +189,8 @@ int main()
 	// create sync  object	and start timer;
 	SyncTimerObject * syncTimer = new SyncTimerObject();
 	syncTimer->start();	
+
+
 #if 0
 	Comm::NXTComm comm;
   bool _bLegoFound;
@@ -362,13 +469,19 @@ bool bValue=true;
 			_VideoImage=VideoOut->GetVideoImage();
 
 			//std::cout << "_timeVideo  " << CommandNr << (*_timeVideo)[CommandNr]  << std::endl;
-			WriterType::Pointer writer = WriterType::New();
-			writer->SetFileName("d:\\cam23.tif");
-			ImageType::Pointer clonedImage = (*_VideoImage)[0]->GetOutput();
-			writer->SetInput(clonedImage);
-			writer->Update();
-			utility<double> helper;
-			helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+				utility<double> helper;
+				int ActualFrameNr =*OpenCVThreadObj->GetOutput()->GetActualFrameNr();
+			 if(ActualFrameNr==40)
+			 {
+				 WriterType::Pointer writer = WriterType::New();
+				 writer->SetFileName("d:\\cam24.tif");
+				 ImageType::Pointer clonedImage = (*_VideoImage)[ActualFrameNr]->GetOutput();
+				 writer->SetInput(clonedImage);
+				 writer->Update();
+
+					helper.matlabSaveVnlVector( dataPath + "VideoTime" + acquisitionTag + ".mat", *_timeVideo, "VideoTime" + acquisitionTag );
+			 }
+
 		}
 	} while (1);
 #endif

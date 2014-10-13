@@ -59,6 +59,24 @@ template  <class Tin,class Tout>  void  OpenCVThread<Tin,Tout>::Initialize(const
 		_VideoImage[i] = DuplicatorType::New();   
 	}
 	m_OutputData->OpenCVObjects::SetVideoImage(&_VideoImage);
+	CvCapture* capture ;
+	capture = cvCaptureFromCAM( 0 );
+	m_OutputData->OpenCVObjects::SetCapture(capture);
+	//	if( capture )
+	//{
+
+	//		for(;;)
+	//	{
+	//		//std:: cout << "camera awake" << std::endl;
+	//		IplImage* iplImg = cvQueryFrame( capture );
+	//		cv::Mat  frame = iplImg;
+	//		if( !frame.empty())
+	//		{
+	//		break;
+	//		}
+	//	}
+	//}
+
 
 	if(fmt)
 	{	
@@ -110,6 +128,85 @@ template  <class Tin,class Tout>  void OpenCVThread<Tin,Tout>::ThreadEntryPoint(
 {
 unsigned int recordLength_Video=_numSamples;	
 
+
+	CvCapture* capture = 0;
+
+	cv::Mat frame, frameCopy, image;
+	IplImage* frame1;
+
+//	capture = cvCaptureFromCAM( 0 ); //0=default, -1=any camera, 1..99=your camera
+
+	capture=m_OutputData->OpenCVObjects::GetCapture();
+
+	if(!capture)std:: cout << "No camera detected" << std::endl;
+	//cvNamedWindow("result",CV_WINDOW_AUTOSIZE);
+	std:: cout << "camera init" << std::endl;
+	//HWND hwnd = (HWND)cvGetWindowHandle("result");
+	
+	if( capture )
+	{
+
+
+		Timer * m_timer= (Timer *) m_SyncObject;
+		IplImage* iplImg = cvQueryFrame( capture );
+		//
+		std:: cout << "camera detected" << std::endl;
+
+
+		for(;;)
+		{
+			//std:: cout << "camera awake" << std::endl;
+			IplImage* iplImg = cvQueryFrame( capture );
+			frame = iplImg;
+			if( !frame.empty())
+			{
+			
+				itk::SizeValueType  camBufferSize = iplImg->imageSize;
+				PixelType  * camBuffer = (PixelType  * ) iplImg->imageData ;
+
+				ImageType::Pointer cameraFrame = itkImageFromBuffer( iplImg,camBuffer, camBufferSize);
+
+				_VideoImage[_ActualFrameNr]->SetInputImage(cameraFrame);    
+				_VideoImage[_ActualFrameNr]->Update();  
+	 
+					//ImageConverterITKToVTK::Pointer ImageConverterITKToVTKPtr=m_InputData->GetImageConverterITKToVTKPtr();
+				//ImageConverterITKToVTKPtr->SetInput(_VideoImage[_ActualFrameNr]->GetOutput());
+				//ImageConverterITKToVTKPtr->Update();
+				vnl_vector<double> * m_CurrentMeasures=m_InputData->GetCurrentMeasures();
+				(*m_CurrentMeasures)[7]=_ActualFrameNr;
+
+					_timeVideo[_ActualFrameNr] = m_timer->getElapsedTimeInSec();
+				_bOpenCVFound=true;
+				_bOpenCVReady = true;
+				cvShowImage( "result", iplImg );
+				if( cv::waitKey( 10 ) >= 0 )
+					cvReleaseCapture( &capture );
+
+				_ActualFrameNr++;
+				_ActualFrameNr=_ActualFrameNr%recordLength_Video;
+
+			}
+
+			else
+			{
+				_bOpenCVFound = false;
+				_bOpenCVReady = false;
+				//std::cerr << "OpenCV Capture failed." << std::endl;
+			}
+		}
+
+		cv::waitKey(0);
+
+		cvDestroyWindow("result");
+
+		return ;
+	}
+
+
+
+#if 0
+
+
 	CvCapture* capture = cvCaptureFromCAM( CV_CAP_ANY );
 	if(capture)
 	{
@@ -129,10 +226,11 @@ unsigned int recordLength_Video=_numSamples;
 			while ( 1 ) {
 				// Get one frame
 				IplImage* frame = cvQueryFrame( capture );
+#if 0
 				if(frame)
 				{
 
-		
+
 					PixelType  * camBuffer = (PixelType  * ) frame->imageData ;
 					ImageType::Pointer cameraFrame = itkImageFromBuffer( frame,camBuffer, camBufferSize);
 
@@ -168,7 +266,7 @@ unsigned int recordLength_Video=_numSamples;
 				writer->Update();*/
 
 				//frame->imageData; 
-
+#endif
 				cvShowImage( "mywindow", frame );
 				// Do not release the frame!
 				//If ESC key pressed, Key=0x10001B under OpenCV 0.9.7(linux version),
@@ -185,7 +283,7 @@ unsigned int recordLength_Video=_numSamples;
 			 std::cerr << "OpenCV Capture failed." << std::endl;
 		}
 	}
-
+#endif
 
 	// Release the capture device housekeeping
 	cvReleaseCapture( &capture );
