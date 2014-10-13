@@ -161,7 +161,7 @@ unsigned int recordLength_Video=_numSamples;
 			if( !frame.empty())
 			{
 			
-				itk::SizeValueType  camBufferSize = iplImg->imageSize;
+				itk::SizeValueType  camBufferSize = iplImg->imageSize/iplImg->nChannels;
 				PixelType  * camBuffer = (PixelType  * ) iplImg->imageData ;
 
 				ImageType::Pointer cameraFrame = itkImageFromBuffer( iplImg,camBuffer, camBufferSize);
